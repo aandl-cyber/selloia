@@ -281,7 +281,14 @@ export async function escanear(entrada: string): Promise<ResultadoScan> {
     }
   }
 
-  detecciones.push(...vistos.values());
+  // Un mismo proveedor puede aparecer en varias páginas. Para el usuario es
+  // un solo sistema: lo contabilizamos una vez, en la primera página vista.
+  const porProveedor = new Map<string, DeteccionIA>();
+  for (const d of vistos.values()) {
+    if (!porProveedor.has(d.proveedor)) porProveedor.set(d.proveedor, d);
+  }
+
+  detecciones.push(...porProveedor.values());
 
   // ── Hallazgos: Art. 50(1) ────────────────────────────────────────────────
   const interactivos = detecciones.filter(
