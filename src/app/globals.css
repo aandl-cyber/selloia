@@ -1,0 +1,223 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta: piedra cálida + un único acento. Nada que distraiga de los datos. */
+  --color-piedra-50: #fafaf9;
+  --color-piedra-100: #f5f5f4;
+  --color-piedra-200: #e7e5e4;
+  --color-piedra-300: #d6d3d1;
+  --color-piedra-400: #a8a29e;
+  --color-piedra-500: #78716c;
+  --color-piedra-600: #57534e;
+  --color-piedra-700: #44403c;
+  --color-piedra-800: #292524;
+  --color-piedra-900: #1c1917;
+
+  --color-marca-50: #eef4ff;
+  --color-marca-100: #d9e6ff;
+  --color-marca-500: #2f5fd6;
+  --color-marca-600: #1f47ad;
+  --color-marca-700: #17357f;
+
+  --color-riesgo-critico: #b42318;
+  --color-riesgo-critico-fondo: #fef3f2;
+  --color-riesgo-alto: #b54708;
+  --color-riesgo-alto-fondo: #fffaeb;
+  --color-riesgo-medio: #a16207;
+  --color-riesgo-medio-fondo: #fefce8;
+  --color-riesgo-bajo: #067647;
+  --color-riesgo-bajo-fondo: #ecfdf3;
+  --color-riesgo-ok: #067647;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
+    Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    border-color: var(--color-piedra-200);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-piedra-50);
+    color: var(--color-piedra-800);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-marca-500);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .contenedor {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .contenedor {
+      padding-inline: 2rem;
+    }
+  }
+
+  .tarjeta {
+    background: white;
+    border: 1px solid var(--color-piedra-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgb(28 25 23 / 0.04);
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border-radius: 0.5rem;
+    padding: 0.6875rem 1.125rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      transform 0.15s ease;
+    cursor: pointer;
+  }
+
+  .boton:active {
+    transform: translateY(1px);
+  }
+
+  .boton-primario {
+    background: var(--color-piedra-900);
+    color: white;
+  }
+
+  .boton-primario:hover {
+    background: var(--color-piedra-700);
+  }
+
+  .boton-acento {
+    background: var(--color-marca-500);
+    color: white;
+  }
+
+  .boton-acento:hover {
+    background: var(--color-marca-600);
+  }
+
+  .boton-secundario {
+    background: white;
+    color: var(--color-piedra-800);
+    border: 1px solid var(--color-piedra-300);
+  }
+
+  .boton-secundario:hover {
+    background: var(--color-piedra-50);
+    border-color: var(--color-piedra-400);
+  }
+
+  .boton:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .campo {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.8125rem 1rem;
+    border: 1px solid var(--color-piedra-300);
+    border-radius: 0.5rem;
+    background: white;
+    color: var(--color-piedra-900);
+  }
+
+  .campo::placeholder {
+    color: var(--color-piedra-400);
+  }
+
+  .campo:focus {
+    outline: 2px solid var(--color-marca-500);
+    outline-offset: -1px;
+    border-color: var(--color-marca-500);
+  }
+
+  .etiqueta-riesgo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.3rem;
+  }
+
+  .riesgo-critico {
+    color: var(--color-riesgo-critico);
+    background: var(--color-riesgo-critico-fondo);
+  }
+
+  .riesgo-alto {
+    color: var(--color-riesgo-alto);
+    background: var(--color-riesgo-alto-fondo);
+  }
+
+  .riesgo-medio {
+    color: var(--color-riesgo-medio);
+    background: var(--color-riesgo-medio-fondo);
+  }
+
+  .riesgo-bajo {
+    color: var(--color-riesgo-bajo);
+    background: var(--color-riesgo-bajo-fondo);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animar-entrada {
+  animation: aparecer 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
