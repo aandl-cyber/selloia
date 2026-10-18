@@ -262,7 +262,9 @@ export default function Home() {
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {PASOS.map((p) => (
             <div key={p.n} className="relative">
-              <span className="font-mono text-4xl font-bold text-piedra-200">{p.n}</span>
+              {/* Antes iba en piedra-200 (1.2:1 sobre el fondo): ilegible incluso siendo
+                  un número decorativo de 36px, que exige 3:1. */}
+              <span className="font-mono text-4xl font-bold text-piedra-400">{p.n}</span>
               <h3 className="mt-2 font-display text-lg font-semibold text-piedra-900">
                 {p.t}
               </h3>
