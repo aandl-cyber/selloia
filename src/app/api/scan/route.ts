@@ -18,7 +18,7 @@ export const maxDuration = 30;
 // Nota: en serverless esto se reinicia en cada invocación fría. Suficiente para
 // la versión pública; cuando haya tráfico real, mover a Upstash Redis.
 const VENTANA_MS = 60 * 60 * 1000;
-const MAX_POR_HORA = 8;
+const MAX_POR_HORA = Number(process.env.SCAN_RATE_LIMIT ?? "8");
 const cubos = new Map<string, number[]>();
 
 function rateLimit(ip: string): { ok: boolean; restantes: number } {
