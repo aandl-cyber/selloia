@@ -102,6 +102,43 @@ function Anillo({ score }: { score: number }) {
 }
 
 export default function Resultado({ resultado }: { resultado: ResultadoScan }) {
+  // Escaneo fallido: no hay puntuación de riesgo que mostrar. Mostrar un 0
+  // "crítico" convertiría un problema técnico en un veredicto legal falso.
+  if (resultado.estado === "fallido") {
+    return (
+      <section aria-label="Escaneo no completado" className="tarjeta p-6 md:p-8">
+        <div className="flex flex-col items-start gap-4 sm:flex-row">
+          <span
+            aria-hidden="true"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-riesgo-medio-fondo text-xl text-riesgo-medio"
+          >
+            ⟳
+          </span>
+          <div>
+            <h3 className="font-display text-xl font-bold text-piedra-900">
+              No hemos podido completar el escaneo
+            </h3>
+            <p className="mt-2 leading-relaxed text-piedra-600">{resultado.resumen}</p>
+            {resultado.motivo && (
+              <p className="mt-3 inline-block rounded bg-piedra-100 px-3 py-1.5 font-mono text-xs text-piedra-600">
+                Detalle técnico: {resultado.motivo}
+              </p>
+            )}
+            <p className="mt-4 text-sm leading-relaxed text-piedra-500">
+              Esto <strong className="font-semibold text-piedra-800">no es un
+              incumplimiento</strong>: no hemos podido leer la web, así que no tenemos
+              nada que concluir sobre ella. Prueba de nuevo en unos minutos; si el
+              problema persiste, escríbenos y lo revisamos a mano.
+            </p>
+            <a href="#escanner" className="boton boton-secundario mt-5">
+              Reintentar
+            </a>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const problemas = resultado.hallazgos.filter((h) => h.severity !== "ok");
   const correctos = resultado.hallazgos.filter((h) => h.severity === "ok");
 

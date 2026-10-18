@@ -59,6 +59,13 @@ export interface ResultadoScan {
   urlNormalizada: string;
   fecha: string; // ISO
   durationMs: number;
+  /**
+   * `ok`      → se pudo leer y analizar la web.
+   * `fallido` → no se pudo leer. NO implica incumplimiento.
+   */
+  estado: "ok" | "fallido";
+  /** Explicación legible cuando `estado === "fallido"`. */
+  motivo?: string;
   score: number; // 0-100, 100 = pleno cumplimiento
   nivel: "critico" | "alto" | "medio" | "bajo";
   resumen: string;

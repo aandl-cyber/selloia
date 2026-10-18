@@ -17,9 +17,10 @@ import type {
   ResultadoScan,
 } from "@/lib/types";
 
-const TIMEOUT_MS = 9000;
+const TIMEOUT_MS = 15000;
 const MAX_BYTES = 3_000_000;
 const MAX_PAGINAS = 6;
+const INTENTOS = 2;
 const USER_AGENT =
   "Mozilla/5.0 (compatible; SelloIA/1.0; +https://sello-ia.com/bot) EscaneoTecnicoCumplimiento";
 
@@ -30,45 +31,77 @@ interface HtmlCrudo {
   html: string;
   titulo: string;
   bytes: number;
+  /** Motivo técnico del fallo, solo informativo. */
+  motivo?: string;
 }
 
-/** Descarga una página con límites estrictos de tiempo y tamaño. */
+/**
+ * Descarga una página con límites de tiempo y tamaño, y reintenta.
+ *
+ * El reintento existe porque muchos CDNs answered el primer request con
+ * lentitud. Un solo intento convertía un sitio lento en un "incumplimiento"
+ * que no existía.
+ */
 async function traer(url: string): Promise<HtmlCrudo> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      redirect: "follow",
-      signal: ctrl.signal,
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "text/html,application/xhtml+xml",
-        "Accept-Language": "es-ES,es;q=0.9,en;q=0.6",
-      },
-      cache: "no-store",
-    });
+  let ultimo: HtmlCrudo = { url, status: 0, ok: false, html: "", titulo: "", bytes: 0 };
 
-    const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("html") && !contentType.includes("text")) {
-      return { url, status: res.status, ok: false, html: "", titulo: "", bytes: 0 };
+  for (let intento = 1; intento <= INTENTOS; intento++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        redirect: "follow",
+        signal: ctrl.signal,
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "es-ES,es;q=0.9,en;q=0.6",
+        },
+        cache: "no-store",
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("html") && !contentType.includes("text")) {
+        ultimo = { url, status: res.status, ok: false, html: "", titulo: "", bytes: 0 };
+        break;
+      }
+
+      const bruto = await res.text();
+      const html = bruto.length > MAX_BYTES ? bruto.slice(0, MAX_BYTES) : bruto;
+      const m = html.match(/<title[^>]*>([\s\S]{0,300}?)<\/title>/i);
+      ultimo = {
+        url: res.url || url,
+        status: res.status,
+        ok: res.ok,
+        html,
+        titulo: m ? m[1].trim() : "",
+        bytes: html.length,
+      };
+      if (ultimo.ok && ultimo.bytes > 0) break;
+    } catch (e) {
+      const causa = (e as { cause?: { code?: string; message?: string } }).cause;
+      ultimo = {
+        url,
+        status: 0,
+        ok: false,
+        html: "",
+        titulo: "",
+        bytes: 0,
+        motivo:
+          e instanceof Error && e.name === "AbortError"
+            ? `sin respuesta en ${TIMEOUT_MS / 1000} s`
+            : causa?.code ?? (e instanceof Error ? e.message : "error desconocido"),
+      };
+      if (process.env.SCAN_DEBUG) {
+        console.error(`[traer] ${url} intento ${intento}/${INTENTOS}:`, ultimo.motivo);
+      }
+    } finally {
+      clearTimeout(t);
     }
-
-    const bruto = await res.text();
-    const html = bruto.length > MAX_BYTES ? bruto.slice(0, MAX_BYTES) : bruto;
-    const m = html.match(/<title[^>]*>([\s\S]{0,300}?)<\/title>/i);
-    return {
-      url: res.url || url,
-      status: res.status,
-      ok: res.ok,
-      html,
-      titulo: m ? m[1].trim() : "",
-      bytes: html.length,
-    };
-  } catch {
-    return { url, status: 0, ok: false, html: "", titulo: "", bytes: 0 };
-  } finally {
-    clearTimeout(t);
+    if (intento < INTENTOS) await new Promise((r) => setTimeout(r, 1200));
   }
+
+  return ultimo;
 }
 
 /** Texto visible del documento, sin scripts ni estilos. */
@@ -219,19 +252,25 @@ export async function escanear(entrada: string): Promise<ResultadoScan> {
   });
 
   if (!paginaPrincipal.ok || paginaPrincipal.bytes === 0) {
-    const err = paginaPrincipal.status >= 500
-      ? `El servidor de ${urlObj.hostname} respondió con un error (${paginaPrincipal.status}).`
-      : paginaPrincipal.status === 0
-        ? `No hemos podido conectar con ${urlObj.hostname}. Puede estar caído, bloquear robots o no responder a nuestro agente.`
-        : `La página no ha devuelto contenido HTML legible.`;
+    const tecnico = paginaPrincipal.motivo ? ` (${paginaPrincipal.motivo})` : "";
+    const err =
+      paginaPrincipal.status >= 500
+        ? `El servidor de ${urlObj.hostname} respondió con un error ${paginaPrincipal.status}.`
+        : paginaPrincipal.status === 0
+          ? `No hemos podido leer ${urlObj.hostname}${tecnico}. Puede estar caído, bloquear nuestro agente o tardar demasiado en responder.`
+          : `La página no ha devuelto contenido HTML legible.`;
 
+    // Importante: no seguimos el mismo camino que un incumplimiento real.
+    // Un escaneo que no pudo ejecutarse NO es una puntuación de riesgo.
     return {
       url: normalizada,
       urlNormalizada: normalizada,
       fecha: new Date().toISOString(),
       durationMs: Date.now() - t0,
+      estado: "fallido",
+      motivo: paginaPrincipal.motivo ?? `HTTP ${paginaPrincipal.status || "sin respuesta"}`,
       score: 0,
-      nivel: "critico",
+      nivel: "bajo",
       resumen: err,
       hallazgos: [],
       detecciones: [],
@@ -419,6 +458,7 @@ export async function escanear(entrada: string): Promise<ResultadoScan> {
     urlNormalizada: normalizada,
     fecha: new Date().toISOString(),
     durationMs: Date.now() - t0,
+    estado: "ok",
     score,
     nivel: nivelDesde(score),
     resumen: resumenDesde(hallazgos, detecciones.length, urlObj.hostname),
