@@ -101,6 +101,51 @@ export function normalizarEntrante(cuerpo: unknown): MensajeEntrante | null {
   };
 }
 
+/**
+ * Verifica la firma del webhook de Resend (esquema Svix).
+ *
+ * Resend delega el envío de webhooks entrantes en Svix, que firma con
+ * `svix-id`, `svix-timestamp` y `svix-signature` sobre
+ * `<svix-id>.<svix-timestamp>.<cuerpo>`. El secreto es base64.
+ *
+ * Sin esta comprobación, cualquiera que conozca la URL podría inyectar emails
+ * falsos en la bandeja ystalo de una respuesta nuestra.
+ */
+export async function verificarFirmaResend(
+  cuerpo: string,
+  cabeceras: { svixId?: string | null; svixTimestamp?: string | null; svixSignature?: string | null },
+  toleranciaSegundos = 300
+): Promise<boolean> {
+  const secreto = process.env.RESEND_WEBHOOK_SECRET;
+  const { svixId, svixTimestamp, svixSignature } = cabeceras;
+
+  if (!secreto || !svixId || !svixTimestamp || !svixSignature) return false;
+
+  // Ventana anti-replay: un webhook capturado no vale para siempre.
+  const edad = Math.abs(Date.now() / 1000 - Number(svixTimestamp));
+  if (!Number.isFinite(edad) || edad > toleranciaSegundos) return false;
+
+  const bytes = Buffer.from(secreto.replace(/^whsec_/, ""), "base64");
+  if (bytes.length === 0) return false;
+
+  const { createHmac, timingSafeEqual } = await import("node:crypto");
+  const esperado = createHmac("sha256", bytes)
+    .update(`${svixId}.${svixTimestamp}.${cuerpo}`, "utf8")
+    .digest("base64");
+
+  // Svix envia "v1,<firma>" y puede encadenar varias versiones separadas por espacio.
+  const candidatas = svixSignature.split(" ");
+  for (const c of candidatas) {
+    const [, firma] = c.split(",");
+    if (!firma) continue;
+    const a = Buffer.from(esperado, "utf8");
+    const b = Buffer.from(firma, "utf8");
+    if (a.length !== b.length) continue;
+    if (timingSafeEqual(a, b)) return true;
+  }
+  return false;
+}
+
 /** Publica el mensaje como Issue para que quede accesible y auditable. */
 export async function registrar(m: MensajeEntrante): Promise<{ numero: number; url: string }> {
   const cuerpo = (m.text?.trim() || htmlAPlano(m.html)) || "(sin cuerpo)";

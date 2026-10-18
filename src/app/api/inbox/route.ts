@@ -1,29 +1,60 @@
 import { NextRequest } from "next/server";
-import { registrar, normalizarEntrante } from "@/lib/inbox";
+import { registrar, normalizarEntrante, verificarFirmaResend } from "@/lib/inbox";
 
 /**
  * POST /api/inbox
  * Webhook de entrada de Resend.
  *
- * Configurado en resend.com → Inbound → destino: esta URL.
- * Secured con `secret` (el que eligas al crear la ruta en Resend).
+ * Seguridad en dos capas:
+ *  1. Firma Svix (svix-id / svix-timestamp / svix-signature). Es la real.
+ *  2. Token `?secret=` como red de seguridad mientras no haya firma.
+ *
+ * Una capa no sustituye a la otra: la firma evita que alguien con la URL se
+ * cuele, y el token evita que un cambio de configuracion deje el buzon abierto.
  */
 export async function POST(req: NextRequest) {
   const url = new URL(req.url);
-  const secreto = process.env.INBOX_SECRET;
+  const tokenUrl = url.searchParams.get("secret");
+  const secretoUrl = process.env.INBOX_SECRET;
 
-  if (secreto && url.searchParams.get("secret") !== secreto) {
-    return Response.json({ error: "no autorizado" }, { status: 401 });
+  const cuerpo = await req.text();
+
+  // Capa 1: firma criptografica de Resend.
+  let firmado = false;
+  if (process.env.RESEND_WEBHOOK_SECRET) {
+    firmado = await verificarFirmaResend(cuerpo, {
+      svixId: req.headers.get("svix-id"),
+      svixTimestamp: req.headers.get("svix-timestamp"),
+      svixSignature: req.headers.get("svix-signature"),
+    });
+    if (!firmado) {
+      console.warn("[inbox] firma Svix invalida; webhook descartado.");
+      return Response.json({ error: "firma_invalida" }, { status: 400 });
+    }
   }
 
-  let cuerpo: unknown;
+  // Capa 2: token en la URL.
+  if (!firmado) {
+    if (!secretoUrl || tokenUrl !== secretoUrl) {
+      return Response.json({ error: "no autorizado" }, { status: 401 });
+    }
+  }
+
+  let json: unknown;
   try {
-    cuerpo = await req.json();
+    json = JSON.parse(cuerpo);
   } catch {
     return Response.json({ error: "json invalido" }, { status: 400 });
   }
 
-  const mensaje = normalizarEntrante(cuerpo);
+  // El payload de Resend llega envuelto en { from, to, ... } o en { type, data }.
+  // Aceptamos ambas formas para no depender del formato exacto.
+  const base =
+    json && typeof json === "object" && "data" in (json as Record<string, unknown>)
+      ? ((json as Record<string, unknown>).data as Record<string, unknown>)
+      : (json as Record<string, unknown>);
+
+  const mensaje = normalizarEntrante(base);
   if (!mensaje) {
     return Response.json({ error: "payload incompleto" }, { status: 400 });
   }
@@ -34,8 +65,6 @@ export async function POST(req: NextRequest) {
     return Response.json({ ok: true, issue: issue.numero }, { status: 201 });
   } catch (e) {
     console.error("[inbox] no se pudo registrar:", e);
-    // 500 para que Resend reintente: perder un email de cliente es peor que
-    // devolver un error y que lo vuelva a intentar.
     return Response.json({ error: "almacen" }, { status: 500 });
   }
 }
@@ -44,7 +73,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const secreto = process.env.INBOX_SECRET;
-  if (secreto && url.searchParams.get("secret") !== secreto) {
+  if (!secreto || url.searchParams.get("secret") !== secreto) {
     return Response.json({ error: "no autorizado" }, { status: 401 });
   }
 
