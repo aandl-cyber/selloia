@@ -61,7 +61,10 @@ export default async function ArticuloPage({ params }: PageProps<"/blog/[slug]">
 
       <div className="mx-auto max-w-3xl">
         <nav aria-label="Ruta de navegación" className="text-sm">
-          <Link href="/blog" className="text-piedra-500 hover:text-piedra-900">
+          <Link
+            href="/blog"
+            className="text-piedra-600 underline underline-offset-4 hover:text-piedra-900"
+          >
             Blog
           </Link>
           <span className="mx-2 text-piedra-300">/</span>
