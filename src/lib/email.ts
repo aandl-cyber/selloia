@@ -109,6 +109,54 @@ export async function enviar(opts: {
 
 // ── Plantillas ──────────────────────────────────────────────────────────────
 
+/**
+ * Notifica al administrador que ha entrado una respuesta.
+ * Es lo que evita tener que vigilar el buzón a mano.
+ */
+export async function notificarEntrada(opts: {
+  para: string;
+  remitente: string;
+  asunto: string;
+  preview: string;
+  issue: number;
+}): Promise<ResultadoEnvio> {
+  const html = htmlBase(`
+    <h1 style="font-size:19px;margin:0 0 14px;color:#1c1917">Nueva respuesta recibida</h1>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
+      <tr><td style="padding:5px 0;color:#78716c;width:80px">De</td>
+          <td style="padding:5px 0;font-weight:600">${escapar(opts.remitente)}</td></tr>
+      <tr><td style="padding:5px 0;color:#78716c">Asunto</td>
+          <td style="padding:5px 0;font-weight:600">${escapar(opts.asunto)}</td></tr>
+    </table>
+    <div style="background:#f5f5f4;border-left:3px solid #1c1917;border-radius:0 6px 6px 0;padding:12px 14px;font-size:13px;color:#44403c;line-height:1.6">
+      ${escapar(opts.preview) || "<em>(sin cuerpo)</em>"}
+    </div>
+    <p style="margin-top:20px">
+      <a href="https://github.com/aandl-cyber/selloia/issues/${opts.issue}"
+         style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:600;font-size:13px">
+        Abrir y responder
+      </a>
+    </p>
+    <p style="margin-top:14px;font-size:12px;color:#78716c">
+      Se ha contestado el resto de la conversación por email. Revisa si pide algo que
+      requiera una decisión: eso no lo respondo automáticamente.
+    </p>
+  `);
+
+  return enviar({ para: opts.para, asunto: `Nueva respuesta: ${opts.asunto}`.slice(0, 120), html });
+}
+
+function escapar(s: string): string {
+  const mapa: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return String(s).replace(/[&<>"']/g, (c) => mapa[c] ?? c);
+}
+
 export function emailBienvenida(opts: {
   nombre?: string;
   plan: string;

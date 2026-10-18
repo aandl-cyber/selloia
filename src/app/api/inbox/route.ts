@@ -62,6 +62,20 @@ export async function POST(req: NextRequest) {
   try {
     const issue = await registrar(mensaje);
     console.log(`[inbox] "${mensaje.subject}" de ${mensaje.from} -> issue #${issue.numero}`);
+
+    // Aviso al administrador: así no hay que ir a mirar el repositorio.
+    const aviso = process.env.ADMIN_EMAIL;
+    if (aviso) {
+      const { notificarEntrada } = await import("@/lib/email");
+      await notificarEntrada({
+        para: aviso,
+        remitente: mensaje.from,
+        asunto: mensaje.subject,
+        preview: (mensaje.text ?? "").replace(/\s+/g, " ").trim().slice(0, 320),
+        issue: issue.numero,
+      });
+    }
+
     return Response.json({ ok: true, issue: issue.numero }, { status: 201 });
   } catch (e) {
     console.error("[inbox] no se pudo registrar:", e);
