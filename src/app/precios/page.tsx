@@ -83,6 +83,13 @@ export default function Precios() {
           El escaneo siempre es gratis. Pagas cuando quieres que no se te rompa, o
           cuando necesitas el trabajo hecho.
         </p>
+        <p className="mt-3 rounded-lg border border-piedra-200 bg-white px-4 py-3 text-sm text-piedra-600">
+          <strong className="text-piedra-900">El importe que ves es el importe que pagas.</strong>{" "}
+          No a&#241;adimos impuestos en el momento de la compra. Operamos desde Reino Unido sin n&uacute;mero de IVA
+          europeo, as&iacute; que el precio mostrado es{" "}
+          <strong>el precio final</strong> y no ver&aacute;s ning&uacute;n desglose al finalizar. A &amp; L
+          Marketing Ltd asume el tratamiento fiscal que le corresponda sobre sus ingresos.
+        </p>
       </div>
 
       <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
