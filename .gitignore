@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# ── Datos operativos: NUNCA en git ──────────────────────────────────────────
+# El repositorio es público. Estas carpetas contienen direcciones de correo de
+# terceros y el estado del emisor: datos personales de personas que no han dado
+# el visto bueno para que se publiquen.
+/.datos
+/docs/outreach/*.csv
+/docs/outreach/*.txt

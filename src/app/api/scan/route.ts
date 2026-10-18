@@ -18,19 +18,37 @@ export const maxDuration = 30;
 // Nota: en serverless esto se reinicia en cada invocación fría. Suficiente para
 // la versión pública; cuando haya tráfico real, mover a Upstash Redis.
 const VENTANA_MS = 60 * 60 * 1000;
-const MAX_POR_HORA = Number(process.env.SCAN_RATE_LIMIT ?? "8");
+const LIMITE_PUBLICO = Number(process.env.SCAN_RATE_LIMIT ?? "8");
+/** Límite para uso interno autenticado (prospección). Muy superior. */
+const LIMITE_INTERNO = Number(process.env.SCAN_RATE_LIMIT_INTERNAL ?? "3000");
 const cubos = new Map<string, number[]>();
 
-function rateLimit(ip: string): { ok: boolean; restantes: number } {
+/**
+ * Uso interno con clave propia.
+ *
+ * El límite público existe para que nadie abuse del escáner. Pero bloqueaba
+ * también a la prospección: de 564 dominios solo se escanearon 8 y el resto
+ * devolvió 429, pareciendo que el mercado cumplía. Son dos cosas distintas y el
+ * límite tiene que distinguirlas.
+ */
+function esInterno(req: NextRequest): boolean {
+  const clave = process.env.SCAN_API_KEY;
+  if (!clave) return false;
+  const auth = req.headers.get("x-scan-key");
+  const q = new URL(req.url).searchParams.get("key");
+  return auth === clave || q === clave;
+}
+
+function rateLimit(ip: string, maximo: number): { ok: boolean; restantes: number } {
   const ahora = Date.now();
   const previos = (cubos.get(ip) ?? []).filter((t) => ahora - t < VENTANA_MS);
-  if (previos.length >= MAX_POR_HORA) {
+  if (previos.length >= maximo) {
     cubos.set(ip, previos);
     return { ok: false, restantes: 0 };
   }
   previos.push(ahora);
   cubos.set(ip, previos);
-  return { ok: true, restantes: MAX_POR_HORA - previos.length };
+  return { ok: true, restantes: maximo - previos.length };
 }
 
 function ipDe(req: NextRequest): string {
@@ -51,7 +69,8 @@ function TooManyRequests(restantes: number) {
 
 export async function POST(req: NextRequest) {
   const ip = ipDe(req);
-  const limite = rateLimit(ip);
+  const interno = esInterno(req);
+  const limite = rateLimit(ip, interno ? LIMITE_INTERNO : LIMITE_PUBLICO);
   if (!limite.ok) return TooManyRequests(limite.restantes);
 
   let url = "";
@@ -80,8 +99,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const rapido = new URL(req.url).searchParams.get("rapido") === "1";
+
   try {
-    const resultado = await escanear(url);
+    const resultado = await escanear(url, { rapido });
     return Response.json(
       { resultado },
       { status: 200, headers: { "Cache-Control": "no-store" } }

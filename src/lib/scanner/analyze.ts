@@ -233,7 +233,8 @@ function paginasInternas(html: string, base: string): string[] {
  * Escaneo completo de un dominio.
  * @throws {UrlInvalida} si la URL no es rastreable.
  */
-export async function escanear(entrada: string): Promise<ResultadoScan> {
+export async function escanear(entrada: string, opciones?: { rapido?: boolean }): Promise<ResultadoScan> {
+  const rapido = opciones?.rapido === true;
   const t0 = Date.now();
   const normalizada = normalizarUrl(entrada);
   const urlObj = validarUrl(normalizada);
@@ -286,7 +287,7 @@ export async function escanear(entrada: string): Promise<ResultadoScan> {
   }
 
   // ── Páginas internas ─────────────────────────────────────────────────────
-  const internas = paginasInternas(paginaPrincipal.html, paginaPrincipal.url);
+  const internas = rapido ? [] : paginasInternas(paginaPrincipal.html, paginaPrincipal.url);
   const htmls: HtmlCrudo[] = [paginaPrincipal];
   for (const u of internas) {
     const r = await traer(u);
@@ -406,7 +407,7 @@ export async function escanear(entrada: string): Promise<ResultadoScan> {
   }
 
   // ── Página de transparencia ──────────────────────────────────────────────
-  const conTransparencia = await hayPaginaTransparencia(urlObj);
+  const conTransparencia = rapido ? true : await hayPaginaTransparencia(urlObj);
   if (!conTransparencia && detecciones.length > 0) {
     hallazgos.push({
       id: "sin-pagina-transparencia",
