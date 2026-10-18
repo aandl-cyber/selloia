@@ -23,7 +23,29 @@ const archivo = args.find((a) => !a.startsWith("--"));
 const REAL = args.includes("--enviar");
 const solo = args.find((a) => a.startsWith("--solo="))?.split("=")[1];
 const limite = Number(args.find((a) => a.startsWith("--max="))?.split("=")[1] ?? 40);
-const RETARDO_MS = Number(args.find((a) => a.startsWith("--delay="))?.split("=")[1] ?? 45_000);
+
+/**
+ * Ritmo de envío.
+ *
+ * Un intervalo fijo es la firma más obvia de un bot: los filtros anti-spam
+ * miden la distribución de los tiempos entre mensajes y un patrón exacto
+ * delata automatización al instante. Por eso el retraso se sortea dentro de
+ * una ventana, con pausas largas ocasionales y una deriva acumulativa.
+ */
+const numArg = (n, def) => Number(args.find((a) => a.startsWith(`--${n}=`))?.split("=")[1] ?? def);
+const MIN_MS = numArg("min", 110) * 1000;
+const MAX_MS = Math.max(MIN_MS, numArg("max-seg", 260) * 1000);
+
+function esperaHumana(indice, quedan) {
+  let ms = MIN_MS + Math.random() * (MAX_MS - MIN_MS);
+  // Deriva acumulativa: el cansancio también es humano.
+  ms *= 1 + indice * 0.04;
+  // Una de cada cuatro, el "se levantó a por un café".
+  if (Math.random() < 0.25) ms += 45_000 + Math.random() * 75_000;
+  // No hacerlo justo antes de dormir.
+  if (quedan === 1) ms = Math.min(ms, 20_000);
+  return Math.round(ms);
+}
 
 const API = "https://api.resend.com/emails";
 const FROM = process.env.RESEND_FROM ?? "SelloIA <hola@sello-ia.com>";
@@ -38,13 +60,24 @@ if (!KEY) {
   process.exit(1);
 }
 
-/** CSV sencillo: punto y coma como separador, comillas opcionales. */
+/**
+ * CSV con separador `;`. La cabecera es opcional: se detecta en vez de asumirla.
+ * (Asumirla descartaba en silencio el primer prospecto cuando no la había.)
+ */
 function parsearCSV(texto) {
-  return texto
+  const lineas = texto
+    .replace(/^\uFEFF/, "")
     .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith("#"))
-    .slice(1)
+    .map((l) => l.replace(/^\uFEFF/, "").trim())
+    .filter((l) => l && !l.startsWith("#"));
+
+  if (!lineas.length) return [];
+
+  const cabeceras = lineas[0].split(";").map((v) => v.trim().replace(/^"|"$/g, "").toLowerCase());
+  const tieneCabecera = cabeceras.includes("email");
+  const datos = tieneCabecera ? lineas.slice(1) : lineas;
+
+  return datos
     .map((linea) => {
       const c = linea.split(";").map((v) => (v ?? "").trim().replace(/^"|"$/g, ""));
       return {
@@ -137,15 +170,19 @@ const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
   console.log(`\n  ${REAL ? "ENVÍO REAL" : "SIMULACIÓN (no se envía nada)"}`);
   console.log(`  Destinatarios: ${lista.length}`);
   console.log(`  Remitente    : ${FROM}`);
-  console.log(`  Retardo      : ${(RETARDO_MS / 1000).toFixed(0)} s entre envíos`);
-  if (REAL) console.log(`\n  ⚠️  Esto envía emails de verdad. ¿Seguro? Ctrl+C para cancelar.\n`);
+  console.log(`  Ritmo        : ${(MIN_MS / 1000).toFixed(0)}–${(MAX_MS / 1000).toFixed(0)} s aleatorios entre envíos`);
+  console.log(`  Ventana estimada: ~${Math.round((lista.length * (MIN_MS + MAX_MS)) / 2 / 60000 + lista.length * 0.3)} min\n`);
+  if (REAL) console.log(`  ⚠️  Esto envía emails de verdad. Ctrl+C para cancelar.\n`);
 
   const cola = [...lista];
   let enviados = 0;
   let fallidos = 0;
+  let rebotes = 0;
 
   while (cola.length) {
     const p = cola.shift();
+    const indice = enviados + fallidos;
+    const quedan = cola.length;
     const body = {
       from: FROM,
       to: [p.email],
@@ -175,15 +212,32 @@ const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
         try { msg = JSON.parse(txt).message ?? txt; } catch { /* texto plano */ }
         console.log(`  [error] ${p.email}  →  HTTP ${res.status}: ${msg}`);
         fallidos++;
+        // Un 422/404 casi siempre es dirección inexistente. Si acumulamos
+        // rebotes, paramos: burnt reputation en el dominio no se arregla.
+        if (res.status === 422 || res.status === 404) rebotes++;
+        if (rebotes >= 4) {
+          console.log("\n  🛑 4 rebotes seguidos. Deteniendo para no dañar el dominio.");
+          break;
+        }
       }
     } catch (e) {
       console.log(`  [red]  ${p.email}  →  ${e.message}`);
       fallidos++;
     }
 
-    if (cola.length) await esperar(RETARDO_MS);
+    if (cola.length) {
+      const pausa = esperaHumana(indice, quedan);
+      const proximo = p2(cola[0]);
+      console.log(`         ⏳ ${(pausa / 1000).toFixed(0)} s antes de ${proximo}`);
+      await esperar(pausa);
+    }
   }
 
-  console.log(`\n  Total: ${enviados} procesados · ${fallidos} fallidos\n`);
+  console.log(`\n  Total: ${enviados} enviados · ${fallidos} fallidos · ${rebotes} rebotes\n`);
   if (REAL && fallidos > 0) process.exitCode = 1;
 })();
+
+/** Muestra el nombre del dominio del siguiente envío en la cola. */
+function p2(pros) {
+  return pros.dominio || pros.email;
+}
