@@ -115,7 +115,12 @@ export default function RootLayout({
 
         <header className="sticky top-0 z-40 border-b border-piedra-200 bg-piedra-50/85 backdrop-blur-md">
           <div className="contenedor flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5" aria-label="SelloIA, inicio">
+            {/*
+              Sin aria-label: el texto visible "SelloIA" ya es un nombre
+              accesible correcto y evita el fallo WCAG 2.5.3, que exige que el
+              nombre accesible contenga exactamente el texto que se ve.
+            */}
+            <Link href="/" className="flex items-center gap-2.5">
               <span
                 aria-hidden="true"
                 className="grid h-8 w-8 place-items-center rounded-md bg-piedra-900 font-display text-sm font-bold text-white"
