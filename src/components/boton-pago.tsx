@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { PlanId } from "@/lib/stripe";
 
 const ETIQUETAS: Record<PlanId, string> = {
-  pro: "Contratar Pro · 39 €",
+  pro: "Contratar Pro · 19 €",
   auditoria: "Pedir auditoría · 199 €",
   agencias: "Quiero el Kit Agencias · 499 €",
 };

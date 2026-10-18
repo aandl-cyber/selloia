@@ -6,7 +6,7 @@ import type { PlanId } from "@/lib/stripe";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Escaneo gratuito, SelloIA Pro a 39 €/mes, auditoría puntual a 199 € y Kit Agencias a 499 € con marca blanca. Sin permanencia.",
+    "Escaneo gratuito, SelloIA Pro a 19 €/mes, auditoría puntual a 199 € y Kit Agencias a 499 € con marca blanca. Sin permanencia.",
   alternates: { canonical: "/precios" },
   openGraph: {
     title: "Precios · SelloIA",
@@ -27,8 +27,8 @@ const PLANES: {
   {
     id: "pro",
     nombre: "Pro",
-    precio: "39 €",
-    periodo: "al mes, por dominio",
+    precio: "19 €",
+    periodo: "al mes, por dominio. Cancela cuando quieras.",
     resumen: "Para quien tiene un chatbot y quiere que no se rompa.",
     items: [
       "Escaneo completo cada 30 días",
@@ -92,6 +92,34 @@ export default function Precios() {
         </p>
       </div>
 
+      {/* Guía de decisión: la pregunta real no es "qué plan", es "cuál necesito" */}
+      <div className="mx-auto mt-12 max-w-3xl">
+        <h2 className="text-center font-display text-2xl font-bold text-piedra-900">
+          ¿Cuál necesito? Decide en diez segundos
+        </h2>
+        <dl className="mt-6 grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              s: "No tengo chatbot en la web",
+              r: "Empieza por el escaneo gratuito. Si sale limpio, no pagas nada.",
+            },
+            {
+              s: "Tengo chatbot y quiero que no se rompa",
+              r: "Pro. 19 € al mes y te avisamos el día que el aviso desaparezca.",
+            },
+            {
+              s: "Vendo webs a otros",
+              r: "Kit Agencias. Marca blanca e informe que puedes entregar a tu cliente.",
+            },
+          ].map((g) => (
+            <div key={g.s} className="tarjeta p-5">
+              <dt className="text-sm font-semibold text-piedra-900">{g.s}</dt>
+              <dd className="mt-1.5 text-sm leading-relaxed text-piedra-600">{g.r}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
       <div className="mx-auto mt-14 grid max-w-5xl gap-6 lg:grid-cols-3">
         {PLANES.map((p) => (
           <div
@@ -100,14 +128,18 @@ export default function Precios() {
           >
             {p.destacado && (
               <span className="mb-3 w-fit rounded-full bg-piedra-900 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                El que más se vende
+                Si vendes webs a otros
               </span>
             )}
             <h2 className="font-display text-xl font-semibold text-piedra-900">{p.nombre}</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-piedra-500">{p.resumen}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-piedra-600">{p.resumen}</p>
 
-            <p className="mt-6 font-display text-4xl font-bold text-piedra-900">{p.precio}</p>
-            <p className="mt-1 text-sm text-piedra-500">{p.periodo}</p>
+            <p className="mt-6">
+              <span className="font-display text-4xl font-bold text-piedra-900">
+                {p.precio}
+              </span>
+            </p>
+            <p className="mt-1 text-sm text-piedra-600">{p.periodo}</p>
 
             <ul className="mt-6 flex-1 space-y-2.5">
               {p.items.map((i) => (

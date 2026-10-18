@@ -317,7 +317,7 @@ export default function Home() {
             },
             {
               nombre: "Pro",
-              precio: "39 €",
+              precio: "19 €",
               nota: "al mes, por dominio",
               items: [
                 "Todo lo del escaneo",

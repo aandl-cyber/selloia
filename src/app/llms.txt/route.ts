@@ -28,7 +28,7 @@ que demuestra el cumplimiento.
 - [Escaneo gratuito](https://sello-ia.com/#escanner): introduce una URL y obtén
   en 60 segundos los sistemas de IA detectados y los incumplimientos del Art. 50.
   Sin registro, sin tarjeta.
-- [Precios](https://sello-ia.com/precios): Escaneo gratuito · Pro 39 €/mes ·
+- [Precios](https://sello-ia.com/precios): Escaneo gratuito · Pro 19 €/mes ·
   Auditoría 199 € · Kit Agencias 499 € con marca blanca.
 
 ## Conceptos clave del Reglamento que explica

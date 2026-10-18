@@ -116,7 +116,13 @@ export default function Escanner() {
           />
         </div>
 
-        <button type="submit" disabled={ocupado} className="boton boton-acento sm:px-6">
+        <button
+          type="submit"
+          disabled={ocupado}
+          aria-busy={ocupado}
+          aria-describedby={estado.fase === "error" ? "error-escaneo" : undefined}
+          className="boton boton-acento sm:px-6"
+        >
           {ocupado ? (
             <>
               <span
