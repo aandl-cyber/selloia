@@ -26,6 +26,17 @@ export default function Privacidad() {
           <p className="mt-3 text-sm leading-relaxed text-piedra-700">
             <strong className="text-piedra-900">A &amp; L Marketing Ltd</strong>
             <br />
+            Empresa registrada en Inglaterra y Gales con el número{" "}
+            <a
+              href="https://find-and-update.company-information.service.gov.uk/company/15185033"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-marca-600 underline underline-offset-2"
+            >
+              15185033
+            </a>
+            , constituida el 3 de octubre de 2023.
+            <br />
             2 Frederick Street, Kings Cross, London, United Kingdom, WC1X 0ND
             <br />
             Teléfono:{" "}
@@ -37,6 +48,10 @@ export default function Privacidad() {
             <a href="mailto:hola@sello-ia.com" className="font-medium text-marca-600 underline underline-offset-2">
               hola@sello-ia.com
             </a>
+          </p>
+          <p className="mt-3 text-xs leading-relaxed text-piedra-500">
+            A &amp; L Marketing Ltd es el responsable del tratamiento en el sentido del
+            RGPD y del UK GDPR. SelloIA es una marca comercial de esa sociedad.
           </p>
         </section>
 

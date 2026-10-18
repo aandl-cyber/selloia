@@ -69,6 +69,7 @@ const ORGANIZATION = {
   logo: "https://sello-ia.com/icon",
   email: "hola@sello-ia.com",
   telephone: "+44-7462-154275",
+  vatID: "",
   address: {
     "@type": "PostalAddress",
     streetAddress: "2 Frederick Street, Kings Cross",

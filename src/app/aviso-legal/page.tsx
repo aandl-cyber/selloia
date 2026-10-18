@@ -24,10 +24,26 @@ export default function AvisoLegal() {
           <h2 className="font-display text-lg font-semibold text-piedra-900">
             Identificación del titular
           </h2>
+          <p className="mt-1 text-xs text-piedra-400">
+            Datos verificados en el registro público de Companies House.
+          </p>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex flex-wrap justify-between gap-2 border-b border-piedra-100 pb-2">
               <dt className="text-piedra-500">Denominación social</dt>
               <dd className="font-semibold text-piedra-900">A &amp; L Marketing Ltd</dd>
+            </div>
+            <div className="flex flex-wrap justify-between gap-2 border-b border-piedra-100 pb-2">
+              <dt className="text-piedra-500">Número de sociedad</dt>
+              <dd className="font-semibold text-piedra-900">
+                <a
+                  href="https://find-and-update.company-information.service.gov.uk/company/15185033"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-marca-600 underline underline-offset-2"
+                >
+                  15185033
+                </a>
+              </dd>
             </div>
             <div className="flex flex-wrap justify-between gap-2 border-b border-piedra-100 pb-2">
               <dt className="text-piedra-500">Domicilio social</dt>
@@ -36,10 +52,20 @@ export default function AvisoLegal() {
               </dd>
             </div>
             <div className="flex flex-wrap justify-between gap-2 border-b border-piedra-100 pb-2">
-              <dt className="text-piedra-500">Teléfono</dt>
-              <dd className="font-semibold text-piedra-900">+44 7462 154275</dd>
+              <dt className="text-piedra-500">Naturaleza del negocio</dt>
+              <dd className="font-semibold text-piedra-900">
+                Desarrollo de software (SIC 62012)
+              </dd>
             </div>
             <div className="flex flex-wrap justify-between gap-2 border-b border-piedra-100 pb-2">
+              <dt className="text-piedra-500">Teléfono</dt>
+              <dd className="font-semibold text-piedra-900">
+                <a href="tel:+447462154275" className="text-marca-600 underline underline-offset-2">
+                  +44 7462 154275
+                </a>
+              </dd>
+            </div>
+            <div className="flex flex-wrap justify-between gap-2">
               <dt className="text-piedra-500">Correo electrónico</dt>
               <dd className="font-semibold text-piedra-900">
                 <a href="mailto:hola@sello-ia.com" className="text-marca-600 underline underline-offset-2">
@@ -47,17 +73,7 @@ export default function AvisoLegal() {
                 </a>
               </dd>
             </div>
-            <div className="flex flex-wrap justify-between gap-2">
-              <dt className="text-piedra-500">Número de sociedad (Companies House)</dt>
-              <dd className="font-semibold text-riesgo-critico">
-                Pendiente de añadir
-              </dd>
-            </div>
           </dl>
-          <p className="mt-4 text-xs leading-relaxed text-piedra-500">
-            El número de registro en Companies House es un dato que la legislación
-            británica obliga a indicar. Se incorpora en cuanto nos lo confirmes.
-          </p>
         </section>
 
         {/* Aviso de no asesoramiento */}
