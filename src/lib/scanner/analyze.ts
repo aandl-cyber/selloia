@@ -21,7 +21,7 @@ const TIMEOUT_MS = 9000;
 const MAX_BYTES = 3_000_000;
 const MAX_PAGINAS = 6;
 const USER_AGENT =
-  "Mozilla/5.0 (compatible; SelloIA/1.0; +https://selloia.es/bot) EscaneoTecnicoCumplimiento";
+  "Mozilla/5.0 (compatible; SelloIA/1.0; +https://sello-ia.com/bot) EscaneoTecnicoCumplimiento";
 
 interface HtmlCrudo {
   url: string;

@@ -206,7 +206,7 @@ export async function crearCheckout(opts: {
     metadata: {
       plan: plan.id,
       referencia: opts.referencia ?? "",
-      origen: "selloia.es",
+      origen: "sello-ia.com",
     },
   };
 

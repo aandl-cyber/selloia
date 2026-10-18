@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const remitente = process.env.RESEND_FROM ?? "SelloIA <hola@selloia.es>";
+    const remitente = process.env.RESEND_FROM ?? "SelloIA <hola@sello-ia.com>";
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },

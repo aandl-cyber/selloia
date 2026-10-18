@@ -10,7 +10,7 @@ import {
 export const maxDuration = 20;
 
 const ORIGEN =
-  process.env.NEXT_PUBLIC_SITIO?.replace(/\/$/, "") ?? "https://selloia.vercel.app";
+  process.env.NEXT_PUBLIC_SITIO?.replace(/\/$/, "") ?? "https://sello-ia.com";
 
 /**
  * POST /api/checkout

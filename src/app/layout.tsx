@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
 
-const SITIO = "https://selloia.es";
+const SITIO = "https://sello-ia.com";
 
 // Se evalúa en tiempo de módulo (build), no de render: con `cacheComponents`
 // activo, un `new Date()` dentro del árbol bloquea el prerenderizado.

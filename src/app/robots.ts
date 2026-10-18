@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://selloia.es/sitemap.xml",
-    host: "https://selloia.es",
+    sitemap: "https://sello-ia.com/sitemap.xml",
+    host: "https://sello-ia.com",
   };
 }

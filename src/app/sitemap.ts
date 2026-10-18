@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://selloia.es";
+const BASE = "https://sello-ia.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const ahora = new Date();

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Precios · SelloIA",
     description: "Sin permanencia. Cancela cuando quieras.",
-    url: "https://selloia.es/precios",
+    url: "https://sello-ia.com/precios",
   },
 };
 

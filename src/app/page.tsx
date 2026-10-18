@@ -10,7 +10,7 @@ const JSONLD = {
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       inLanguage: "es-ES",
-      url: "https://selloia.es",
+      url: "https://sello-ia.com",
       description:
         "Escáner de cumplimiento del Artículo 50 del Reglamento (UE) 2024/1689 para webs con inteligencia artificial.",
       offers: {

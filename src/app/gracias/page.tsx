@@ -60,10 +60,10 @@ export default function Gracias() {
           <p className="text-sm text-piedra-600">
             ¿Necesitas algo antes?{" "}
             <a
-              href="mailto:hola@selloia.es"
+              href="mailto:hola@sello-ia.com"
               className="font-medium text-marca-600 underline underline-offset-4"
             >
-              hola@selloia.es
+              hola@sello-ia.com
             </a>
           </p>
           <Link
