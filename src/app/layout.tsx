@@ -50,6 +50,36 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
   category: "technology",
+  other: {
+    "geo.region": "ES",
+    "geo.placename": "España",
+  },
+};
+
+/**
+ * Datos estructurados de organización: lo leen los buscadores y también los
+ * asistentes de IA para saber quién está detrás del sitio. Sin esto, SelloIA es
+ * una web más; con esto, es una empresa identificable y citable.
+ */
+const ORGANIZATION = {
+  "@type": "Organization",
+  name: "A & L Marketing Ltd",
+  alternateName: "SelloIA",
+  url: "https://sello-ia.com",
+  logo: "https://sello-ia.com/icon",
+  email: "hola@sello-ia.com",
+  telephone: "+44-7462-154275",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "2 Frederick Street, Kings Cross",
+    addressLocality: "London",
+    postalCode: "WC1X 0ND",
+    addressCountry: "GB",
+  },
+  areaServed: { "@type": "Country", name: "España" },
+  knowsLanguage: "es-ES",
+  description:
+    "Proveedor de herramientas de verificación técnica del cumplimiento del Reglamento Europeo de Inteligencia Artificial (UE) 2024/1689.",
 };
 
 export const viewport: Viewport = {
@@ -71,6 +101,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION) }}
+        />
         <a
           href="#contenido"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-piedra-900 focus:px-4 focus:py-2 focus:text-white"
@@ -168,7 +202,11 @@ export default function RootLayout({
             </div>
 
             <p className="mt-8 text-xs text-piedra-400">
-              © {ANIO} SelloIA · Reglamento (UE) 2024/1689, Artículo 50,
+              © {ANIO} A &amp; L Marketing Ltd · 2 Frederick Street, Kings Cross, London
+              WC1X 0ND · <a href="tel:+447462154275" className="underline underline-offset-2">+44 7462 154275</a>
+            </p>
+            <p className="mt-2 text-xs text-piedra-400">
+              SelloIA verifica el cumplimiento del Art. 50 del Reglamento (UE) 2024/1689,
               exigible desde el 2 de agosto de 2026.
             </p>
           </div>
