@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/precios", prioridad: 0.9, frecuencia: "monthly" as const },
     { path: "/sello", prioridad: 0.8, frecuencia: "monthly" as const },
     { path: "/blog", prioridad: 0.8, frecuencia: "weekly" as const },
-    { path: "/estado", prioridad: 0.4, frecuencia: "daily" as const },
+    { path: "/estado", prioridad: 0.2, frecuencia: "weekly" as const },
   ];
 
   const legales = [
