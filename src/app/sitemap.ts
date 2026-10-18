@@ -25,8 +25,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/blog/articulo-50-reglamento-ia",
     "/blog/chatbot-sin-aviso-multa",
     "/blog/obligaciones-pymes-ley-ia",
-    "/blog/como-etiquetar-contenido-generado-ia",
-    "/blog/articulo-4-alfabetizacion-ia",
   ].map((path) => ({ path, prioridad: 0.7, frecuencia: "monthly" as const }));
 
   return [...estaticas, ...guias, ...legales].map((e) => ({

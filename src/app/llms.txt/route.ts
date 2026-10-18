@@ -38,11 +38,7 @@ que demuestra el cumplimiento.
 - [Multas por la Ley de IA en España](https://sello-ia.com/blog/chatbot-sin-aviso-multa):
  hasta 15 M€ o el 3 % de la facturación global. Qué pasa con una pyme.
 - [Artículo 50.1: el chatbot sin aviso](https://sello-ia.com/blog/obligaciones-pymes-ley-ia):
-  el incumplimiento más común y el más fácil de corregir.
-- [Cómo etiquetar contenido generado por IA](https://sello-ia.com/blog/como-etiquetar-contenido-generado-ia):
-  marcado visible y marcado legible por máquina (Art. 50.2 y 50.4).
-- [Artículo 4: formación del personal en IA](https://sello-ia.com/blog/articulo-4-alfabetizacion-ia):
-  exigible desde el 2 de febrero de 2025 y el único que no se ve desde fuera.
+  los cuatro incumplimientos más comunes y cómo se corrigen.
 
 ## Páginas de referencia
 
