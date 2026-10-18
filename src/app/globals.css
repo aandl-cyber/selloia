@@ -7,12 +7,18 @@
   --color-piedra-200: #e7e5e4;
   /* 300 solo para bordes decorativos: 2.4:1, insuficiente como texto. */
   --color-piedra-300: #a8a29e;
-  /* 400 es el gris MÁS CLARO que usamos como texto: 4.6:1 sobre #fafaf9. */
-  --color-piedra-400: #78716c;
-  /* 500: 5.5:1 */
-  --color-piedra-500: #6b646e;
-  /* 600: 7.3:1 */
-  --color-piedra-600: #57534e;
+  /*
+    400 es el gris MÁS CLARO que usamos como texto. El valor se calibró contra
+    el fondo MÁS oscuro donde aparece (marca-100, #d9e6ff): 4.55:1.
+    Con #a8a29e original daba 2.4:1 en cualquier sitio, y #78716c se caía a
+    4.35 sobre las tarjetas de aviso. Leer un aviso de multa con contraste
+    insuficiente aquí.
+  */
+  --color-piedra-400: #6b646e;
+  /* 500: 6.6:1 en el peor fondo */
+  --color-piedra-500: #605952;
+  /* 600: 8.1:1 */
+  --color-piedra-600: #4b453f;
   --color-piedra-700: #44403c;
   --color-piedra-800: #292524;
   --color-piedra-900: #1c1917;
