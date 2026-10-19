@@ -60,9 +60,13 @@ export const FIRMAS: Firma[] = [
   {
     proveedor: "Zendesk",
     tipo: "chatbot",
-    scripts: ["static.zdassets.com/ekr/snippet.js", "zE", "window.zESettings"],
-    selectores: [".zendesk", "#ze_snackbar"],
-    globals: ["zE", "zESettings"],
+    // `zE` se eliminó como firma: es una subcadena de "breeze-minification", el
+    // plugin de caché de WordPress, así que marcaba como Zendesk a cualquier
+    // wordpress español. Se detectaron 5 webs falsas de este modo.
+    // Quedan las señales que sí son propias del proveedor.
+    scripts: ["static.zdassets.com", "zdassets.com", "zendesk.com/embeddedservice"],
+    selectores: ["#ze_snackbar"],
+    globals: ["zESettings"],
     peso: 85,
     aiNativa: true,
     notas: "El bot de Zendesk opera con IA; el widget de tickets no siempre.",
@@ -272,7 +276,9 @@ export const FIRMAS: Firma[] = [
   {
     proveedor: "Amazon Polly",
     tipo: "voz",
-    scripts: ["polly", "lex.aws"],
+    // `polly` solo: es un nombre de pila muy común y el matcher lo trata como
+    // identificador. Sin el dominio no hay prueba de que sea el servicio de AWS.
+    scripts: ["polly.aws", "lex.aws", "tts.s3"],
     peso: 85,
     aiNativa: true,
   },

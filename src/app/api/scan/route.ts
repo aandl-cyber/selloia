@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { track as va } from "@vercel/analytics";
 import { escanear, UrlInvalida } from "@/lib/scanner/analyze";
 import type { ResultadoScan } from "@/lib/types";
 
@@ -49,6 +50,20 @@ function rateLimit(ip: string, maximo: number): { ok: boolean; restantes: number
   previos.push(ahora);
   cubos.set(ip, previos);
   return { ok: true, restantes: maximo - previos.length };
+}
+
+/**
+ * Registra un evento de producto.
+ *
+ * El escáner es la única función del negocio que no puede fallar por el sake de
+ * una métrica, así que cualquier error aquí se traga y sigue.
+ */
+function track(evento: string, valor?: string): void {
+  try {
+    va(evento, valor ? { valor } : undefined);
+  } catch {
+    /* sin analítica: el escaneo continúa igual */
+  }
 }
 
 function ipDe(req: NextRequest): string {
@@ -103,6 +118,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const resultado = await escanear(url, { rapido });
+
+    // Métrica de producto. Lo que importa no es cuántas visitas recibe el sitio,
+    // sino cuántas personas descubren que su web NO cumple: ese es el momento
+    // exacto en que nace la intención de compra, y es lo único que permite
+    // saber si el producto funciona sin depender de que alguien escriba.
+    if (!interno) {
+      track("escaneo", resultado.score >= 70 ? "cumple" : "no_cumple");
+    }
+
     return Response.json(
       { resultado },
       { status: 200, headers: { "Cache-Control": "no-store" } }

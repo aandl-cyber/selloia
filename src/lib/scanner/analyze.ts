@@ -125,21 +125,96 @@ function scriptsDeclarados(html: string): string[] {
   return [...out];
 }
 
+/**
+ * Código JavaScript embebido en la página.
+ *
+ * Existe por separado del documento porque un identificador como `zE` o
+ * `driftConfig` solo tiene sentido dentro de un script. Buscarlo en el HTML
+ * entero hacía que "ze" (que aparece en Wikipedia, en el BOE y en GitHub)
+ * marcara cualquier web como si tuviera Zendesk instalado.
+ */
+function codigoJs(html: string): string {
+  const partes: string[] = [];
+  for (const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) partes.push(m[1]);
+  return partes.join("\n");
+}
+
+/**
+ * Un token con punto o barra es un dominio o una ruta: casi nunca aparece por
+ * casualidad, así que se puede buscar en todo el documento.
+ *
+ * Un token suelto (`zE`, `dify`, `polly`) sí puede aparecer por casualidad, y
+ * algunos son palabras del castellano o apellidos (`Polly`, `Claude`, `Copilot`,
+ * `Firefly`). Esos solo cuentan si aparecen en JavaScript o en la URL de un
+ * script, que es donde el proveedor deja su huella de verdad.
+ */
+function tokenEsDelicado(token: string): boolean {
+  return !/[./]/.test(token);
+}
+
+/** Un token suelto debe aparecer como identificador, no como palabra suelta. */
+function comoIdentificador(js: string, token: string): boolean {
+  const t = token.toLowerCase();
+  // `zE`, `zESettings`, `_hsq`, `window.driftConfig`, `Tawk_API`…
+  return new RegExp(`(?:^|[^a-z0-9_$.])${escapeRegExp(t)}(?:[^a-z0-9_$]|$)`, "i").test(js);
+}
+
+/**
+ * ¿Aparece el token en la URL de un script, como segmento y no por casualidad?
+ *
+ * Sin esto, `zE` casaba con `breeze-minification.js` y marcaba como Zendesk a
+ * cualquier WordPress. Un token suelto tiene que ir delimitado también en la URL.
+ */
+function enUrlDeScript(urls: string[], token: string): boolean {
+  const t = token.toLowerCase();
+  if (!tokenEsDelicado(t)) return urls.some((u) => u.includes(t));
+  const patron = new RegExp(`(?:^|[/._-])${escapeRegExp(t)}(?:[/._-]|$)`, "i");
+  return urls.some((u) => patron.test(u));
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** Coincidencia de una firma contra el HTML de la página. */
 function firmaCoincide(f: Firma, html: string, scripts: string[]): { firma: string; tipo: "script" | "selector" } | null {
   const corpus = html.toLowerCase();
+  const js = codigoJs(html);
   const corpusScripts = scripts.map((s) => s.toLowerCase());
 
-  for (const s of f.scripts) {
+  for (const s of f.scripts ?? []) {
     const alvo = s.toLowerCase();
-    if (corpusScripts.some((cs) => cs.includes(alvo))) return { firma: s, tipo: "script" };
-    if (corpus.includes(alvo)) return { firma: s, tipo: "script" };
+    // Las URLs de scripts declarados son una señal fuerte: es donde vive el widget.
+    if (enUrlDeScript(corpusScripts, alvo)) return { firma: s, tipo: "script" };
+    if (tokenEsDelicado(alvo)) {
+      if (comoIdentificador(js, alvo)) return { firma: s, tipo: "script" };
+    } else if (corpus.includes(alvo)) {
+      return { firma: s, tipo: "script" };
+    }
   }
+
+  // `globals` son marcas que el proveedor deja en `window`. Antes no se
+  // comprobaban en ningún sitio, así que varias firmas (Botpress, Voiceflow,
+  // Chatfuel…) eran sencillamente indetectables. Es la misma prueba que
+  // `scripts`: un identificador dentro de JavaScript.
+  for (const g of f.globals ?? []) {
+    const alvo = g.toLowerCase();
+    if (enUrlDeScript(corpusScripts, alvo)) return { firma: g, tipo: "script" };
+    if (comoIdentificador(js, alvo)) return { firma: g, tipo: "script" };
+  }
+
   if (f.selectores) {
     for (const sel of f.selectores) {
-      // Convertimos selectores planos a una comprobación de presencia razonable.
       const limpio = sel.replace(/[[\]#.:*]/g, "").toLowerCase();
-      if (limpio.length > 3 && corpus.includes(limpio)) return { firma: sel, tipo: "selector" };
+      if (limpio.length <= 3) continue;
+      if (tokenEsDelicado(limpio)) {
+        // Un id o clase solo cuenta si es un identificador real en el marcado
+        // o aparece en un selector de JS.
+        const enMarcado = new RegExp(`(?:id|class)\\s*=\\s*["'][^"']*\\b${escapeRegExp(limpio)}\\b`, "i").test(html);
+        if (enMarcado || comoIdentificador(js, limpio)) return { firma: sel, tipo: "selector" };
+      } else if (corpus.includes(limpio)) {
+        return { firma: sel, tipo: "selector" };
+      }
     }
   }
   return null;
