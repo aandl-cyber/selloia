@@ -123,7 +123,7 @@ export const PLANES: Record<PlanId, Plan> = {
   pro: {
     id: "pro",
     nombre: "SelloIA Pro",
-    cantidad: 1900,
+    cantidad: 1999,
     modo: "subscription",
     intervalo: "month",
     descripcion:

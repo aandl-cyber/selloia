@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       {
         error: "limite",
         mensaje: "La prueba gratuita cubre 3 dominios. El plan Pro no tiene límite.",
-        precio: "19 €/mes — https://sello-ia.com/precios",
+        precio: "19,99 €/mes — https://sello-ia.com/precios",
       },
       { status: 402 }
     );

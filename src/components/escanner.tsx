@@ -20,9 +20,17 @@ export default function Escanner() {
   // Evita que el escaneo se dispare dos veces en modo estricto.
   const yaDisparo = useRef(false);
 
-  async function lanzar(e?: React.FormEvent) {
+  /**
+ * Lanza el escaneo.
+ *
+ * `dominio` permite pasar la URL explícitamente. Sin ese parámetro, llamar
+ * justo después de un `setUrl` usaría el valor viejo del cierre: React todavía
+ * no ha aplicado el estado y el escaneo se lanzaría con el campo vacío. Pasando
+ * el dominio no hay carrera posible.
+ */
+async function lanzar(e?: React.FormEvent, dominio?: string) {
     e?.preventDefault();
-    const limpio = url.trim();
+    const limpio = (dominio ?? url).trim();
     if (!limpio) {
       setEstado({ fase: "error", mensaje: "Escribe la dirección de tu web." });
       return;
@@ -101,7 +109,7 @@ export default function Escanner() {
 
     yaDisparo.current = true;
     setUrl(dominio);
-    void lanzar();
+    void lanzar(undefined, dominio);
     // Solo queremos reaccionar al valor inicial de `u`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

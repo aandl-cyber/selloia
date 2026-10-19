@@ -6,7 +6,7 @@ import type { PlanId } from "@/lib/stripe";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Escaneo gratuito, SelloIA Pro a 19 €/mes, auditoría puntual a 199 € y Kit Agencias a 499 € con marca blanca. Sin permanencia.",
+    "Escaneo gratuito, SelloIA Pro a 19,99 €/mes, auditoría puntual a 199 € y Kit Agencias a 499 € con marca blanca. Sin permanencia.",
   alternates: { canonical: "/precios" },
   openGraph: {
     title: "Precios · SelloIA",
@@ -27,7 +27,7 @@ const PLANES: {
   {
     id: "pro",
     nombre: "Pro",
-    precio: "19 €",
+    precio: "19,99 €",
     periodo: "al mes, por dominio. Cancela cuando quieras.",
     resumen: "Para quien tiene un chatbot y quiere que no se rompa.",
     items: [
@@ -37,7 +37,7 @@ const PLANES: {
       "SelloIA con página de verificación pública",
       "Widget de aviso listo para pegar",
     ],
-    destacado: false,
+    destacado: true,
   },
   {
     id: "auditoria",
@@ -68,7 +68,7 @@ const PLANES: {
       "Soporte prioritario por WhatsApp",
       "White-label: tu logo, tus colores",
     ],
-    destacado: true,
+    destacado: false,
   },
 ];
 
@@ -105,7 +105,7 @@ export default function Precios() {
             },
             {
               s: "Tengo chatbot y quiero que no se rompa",
-              r: "Pro. 19 € al mes y te avisamos el día que el aviso desaparezca.",
+              r: "Pro. 19,99 € al mes y te avisamos el día que el aviso desaparezca.",
             },
             {
               s: "Vendo webs a otros",

@@ -281,7 +281,7 @@ export default function Resultado({ resultado }: { resultado: ResultadoScan }) {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="rounded-lg border border-piedra-700 bg-piedra-800 p-5">
-              <p className="text-sm font-semibold text-white">Pro · 19 € al mes</p>
+              <p className="text-sm font-semibold text-white">Pro · 19,99 € al mes</p>
               <p className="mt-1 text-xs text-piedra-400">Por dominio</p>
               <ul className="mt-3 space-y-1.5 text-sm text-piedra-300">
                 <li>✓ Reescanéo cada 30 días</li>

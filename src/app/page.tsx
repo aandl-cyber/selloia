@@ -336,7 +336,7 @@ export default function Home() {
             },
             {
               nombre: "Pro",
-              precio: "19 €",
+              precio: "19,99 €",
               nota: "al mes, por dominio",
               items: [
                 "Todo lo del escaneo",

@@ -36,6 +36,34 @@ function esperaHumana(indice) {
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const ESTADO = ".datos/emisor-estado.json";
+
+/**
+ * Guarda el envío en el mismo fichero que usa el emisor principal.
+ *
+ * Sin esto, un relanzamiento del script vuelve a empezar de cero y reenvía a
+ * los primeros de la lista. El fichero es la única memoria entre ejecuciones,
+ * así que se escribe tras cada envío aceptado, no al final: si el proceso muere
+ * a mitad de la noche, lo que ya salió sigue estando registrado.
+ */
+async function guardarEnviado(email) {
+  let e = { nota: "agencias", enviados: [], rebotes: 0, dia: new Date().toISOString().slice(0, 10), total: 0 };
+  try {
+    e = JSON.parse(await readFile(ESTADO, "utf8"));
+  } catch {
+    /* primer arranque */
+  }
+  if (!Array.isArray(e.enviados)) e.enviados = [];
+  const limpio = String(email).toLowerCase();
+  if (!e.enviados.some((x) => String(x).toLowerCase() === limpio)) {
+    e.enviados.push(limpio);
+    e.total = (e.total ?? 0) + 1;
+    e.dia = new Date().toISOString().slice(0, 10);
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(ESTADO, JSON.stringify(e, null, 2), "utf8");
+  }
+}
+
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -81,16 +109,17 @@ function cuerpo(dominio, remitente) {
   </p>
 
   <p style="font-size:14px;line-height:1.7">
-    Por eso hemos montado el <strong>Kit Agencias, 499 €</strong>: un escáner real que
-    detecta qué sistemas de IA tiene una web y si avisan de ello, y te lo entrega
-    en tu marca, con informe vendible y textos legales reutilizables.
+    No hace falta comprometerse a nada grande para empezar. El <strong>Pro son
+    19,99 € al mes</strong>: metes la web de un cliente, el escáner detecta qué
+    sistemas de IA tiene y si avisan de ello, y te lo vuelve a comprobar solo en
+    30 días. Sin permanencia: si un mes no lo necesitas, no lo pagas.
   </p>
 
   <p style="font-size:14px;line-height:1.7;margin:20px 0">
     <a href="https://sello-ia.com/precios"
        style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;
               padding:12px 22px;border-radius:6px;font-weight:600;font-size:14px">
-      Ver el Kit Agencias
+      Empezar con Pro · 19,99 €/mes
     </a>
   </p>
 
@@ -173,6 +202,7 @@ function parsear(csv) {
 
       if (r.ok) {
         console.log(`  [ok] ${p.email.padEnd(42)} ${p.dominio}`);
+        await guardarEnviado(p.email);
       } else {
         console.log(`  [error] ${p.email} → HTTP ${r.status}: ${txt.slice(0, 120)}`);
         // 422/404 casi siempre es dirección inexistente. Cuatro seguidos y se
