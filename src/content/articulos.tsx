@@ -507,4 +507,149 @@ export const ARTICULOS: Articulo[] = [
       </>
     ),
   },
+  {
+    slug: "real-decreto-723-2026-plantilla",
+    titulo:
+      "Real Decreto 723/2026: la información que DEBES entregar a tu plantilla desde el 5 de octubre",
+    descripcion:
+      "Qué obliga exactamente el Real Decreto 723/2026 a las empresas que usan IA para decidir sobre el trabajo, qué mira la AEPD y qué documento tienes que poder acreditar.",
+    fecha: "2026-10-19",
+    minutos: 9,
+    categoria: "Obligaciones",
+    faq: [
+      {
+        q: "Tengo un chatbot de atencion al cliente. Me obliga el Real Decreto 723/2026?",
+        a: "No, si ese sistema no decide sobre las condiciones de trabajo de la plantilla. El Decreto se refiere a sistemas algoritmicos o automatizados que toman decisiones sobre aspectos del trabajo: sueldos, presupuestos, evaluaciones, turnos, ascensos o descartes de candidaturas. Un chatbot que atiende clientes es otra obligacion, la del Articulo 50 del Reglamento Europeo de IA.",
+      },
+      {
+        q: "Que debo entregar exactamente a cada persona trabajadora?",
+        a: "Que existe el sistema, para que decisiones interviene y en cuales no, las pautas, criterios y reglas con las que funciona, quien revisa las decisiones y como puede pedir revision humana. No es un documento unico obligatorio, pero si la necesidad de poder acreditarlo. Un texto generico que no explique como decide el sistema no cumple la spirit de la norma.",
+      },
+      {
+        q: "La AEPD ya ha multado a alguna empresa por esto?",
+        a: "No por este motivo todavia. Lo que ha hecho es dirigir advertencias, que son el paso previo: la AEPD avisa antes de sancionar. La advertencia AI-00009-2026, de 23 de septiembre de 2026, fue a una empresa que iba a instalar IA para puntuar curricululos. No habia infraccion, pero la Agencia fijo las condiciones que exigira.",
+      },
+      {
+        q: "Basta con decir que hay una persona revisando?",
+        a: "No. La advertencia AI-00009-2026 fue precisamente a una empresa que habia asegurado que la decision final siempre la tomaba una persona. La Agencia respondio que esa intervencion debe ser efectiva: quien revisa tiene que conocer las limitaciones del sistema, tener tiempo y autoridad para cambiar el resultado. Una revision de formulario vacio no cumple.",
+      },
+    ],
+    cuerpo: ({ H2, P, UL }) => (
+      <>
+        <P>
+          El <strong>5 de octubre de 2026</strong> entro en vigor el Real Decreto 723/2026. Su
+          articulo 3.2.k obliga a informar por escrito a cada persona trabajadora cuando se
+          usan sistemas algoritmicos o automatizados de toma de decisiones. Y cuando esos
+          sistemas se emplean para decidir sobre sus condiciones de trabajo, la informacion
+          debe incluir{" "}
+          <strong>sus pautas, criterios y reglas de funcionamiento</strong>.
+        </P>
+        <P>
+          La parte que mas se escapa es esa ultima. No basta con decir que utilizas una
+          herramienta de IA. Hay que explicar{" "}
+          <strong>como decide</strong>.
+        </P>
+
+        <H2>Que sistemas te obligan a informar</H2>
+        <P>
+          La clave esta en la palabra <em>decidir</em>. Si el sistema ordena, filtra o
+          propone y una persona decide despues, probablemente si. Si solo attends, informa o
+          automatiza un tramite sin tocar las condiciones de trabajo de nadie, no.
+        </P>
+        <UL
+          items={[
+            "SI: puntuacion automatica de candidaturas, con decision final humana.",
+            "SI: preordenacion de solicitudes de cambio de turno.",
+            "SI: deteccion de absentismo que dispara una decision sobre la persona.",
+            "SI: evaluacion de desempeño o fijacion de objetivos con puntuacion automatica.",
+            "NO: un chatbot que responde preguntas de clientes.",
+            "NO: una herramienta de nomina que calcula el sueldo de forma determinista.",
+          ]}
+        />
+        <P>
+          Y conviene notar la paradoja: en cuanto metes IA en el proceso, aunque la persona
+          sea quien firma, la empresa ha metido un sistema automatizado en la decision. Por eso
+          lo que hay que demostrar es que la intervencion humana es real.
+        </P>
+
+        <H2>Lo que la AEPD ya ha dicho</H2>
+        <P>
+          El 23 de septiembre de 2026 la Agencia publico la advertencia{" "}
+          <strong>AI-00009-2026</strong>, dirigida a una empresa que informo de su intencion de
+          instalar una herramienta para analizar curricululos y priorizar candidaturas. El
+          sistema no estaba implantado.
+        </P>
+        <P>
+          La empresa habia asegurado que la decision final siempre seria humana y que no se
+          analizarian atributos sensibles. La Agencia respondio con tres condiciones que conviene
+          tener escritas:
+        </P>
+        <UL
+          items={[
+            "Evaluacion de impacto (EIPD) ANTES de tratar los datos, no despues.",
+            "Proteccion de datos desde el diseño, no como parche.",
+            "Supervision humana efectiva: quien revisa debe conocer las limitaciones del sistema, disponer de tiempo y tener autoridad para revertir el resultado.",
+          ]}
+        />
+        <P>
+          Y una frase que resume el problema de fondo:{" "}
+          <strong>
+            «La presencia formal de una persona no excluye el articulo 22»
+          </strong>
+          . Tener a alguien que pulsa «aceptar» no convierte el proceso en humano.
+        </P>
+
+        <H2>El problema de la revision que no revisa</H2>
+        <P>
+          La advertencia apunta a un detalle que casi todas las empresas pasan por alto. Si
+          nunca hay discrepancias entre la puntuacion del sistema y la decision de la persona,
+          eso no significa que el sistema acierte: puede significar que la persona se esta
+         limitandose a aceptar. La Agencia lo dice casi con esas palabras: la ausencia sistematica
+          de discrepancias puede ser un indicio de dependencia practica de la puntuacion.
+        </P>
+        <P>
+          Por eso el revisor que designes tiene que poder decir «no» de verdad. Y conviene que
+          esa persona seja alguien que conoce el puesto, no un filtro.
+        </P>
+
+        <H2>Que documento tienes que poder ensenar</H2>
+        <P>
+          No existe un modelo oficial imposed. Lo que existe es la necesidad de acreditarlo si
+          alguien pregunta. En la practica eso significa un documento escrito, con fecha, y que
+          responda a esto:
+        </P>
+        <UL
+          items={[
+            "Que sistema se usa, con nombre y version.",
+            "En que decisiones interviene y con que papel: propone, ordena o decide.",
+            "Las reglas con las que opera, incluidas las que restringen sus criterios.",
+            "Quien revisa, con nombre y con autoridad real para revertir.",
+            "Que puede pedir la persona trabajadora: revision humana y explicacion.",
+          ]}
+        />
+        <P>
+          Y algo que casi nadie incluye y que la Agencia mira de cerca:{" "}
+          <strong>que no usais datos sensibles</strong> —salud, origen, orientacion politica,
+          religion— para evaluar a nadie.
+        </P>
+
+        <H2>El aviso se puede generar hoy</H2>
+        <P>
+          No es la parte dificil de la ley, pero es lo que mas se retrasa, porque nadie sabe
+          por donde empezar. Hemos preparado un generador gratuito que produce ese documento
+          en espanol, con los seis apartados, listo para imprimir o publicar en la intranet.
+        </P>
+        <P>
+          No sustituye a un abogado, y el aviso hay que ajustarlo a lo que de verdad hace tu
+          sistema. Pero te ahorra la pagina en blanco, que es donde mas tiempo se pierde.
+        </P>
+        <P>
+          <a href="/informacion-trabajadores">Generar el aviso para la plantilla</a> · y si lo
+          que tienes que resolver es la parte publica de tu web,{" "}
+          <a href="/#escanner">el escaner gratuito</a> te dice si tienes chatbots o avatares sin
+          avisar.
+        </P>
+      </>
+    ),
+  },
 ];

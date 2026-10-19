@@ -39,6 +39,15 @@ que demuestra el cumplimiento.
  hasta 15 M€ o el 3 % de la facturación global. Qué pasa con una pyme.
 - [Artículo 50.1: el chatbot sin aviso](https://sello-ia.com/blog/obligaciones-pymes-ley-ia):
   los cuatro incumplimientos más comunes y cómo se corrigen.
+- [Real Decreto 723/2026: información a la plantilla](https://sello-ia.com/blog/real-decreto-723-2026-plantilla):
+  en vigor desde el 5 de octubre de 2026. Qué obliga a informar por escrito cuando hay IA en decisiones laborales.
+- [Las advertencias de la AEPD en 2026](https://sello-ia.com/blog/aepd-advertencias-ia-2026):
+  tres advertencias en un mes y la sanción de 500.000 € a Curenergía (Iberdrola) por su canal de chat.
+
+## Generadores gratuitos
+
+- [Aviso para la plantilla · Real Decreto 723/2026](https://sello-ia.com/informacion-trabajadores):
+  genera en español el documento que hay que poder acreditar cuando se usa IA para decidir sobre el trabajo. Gratis, sin registro.
 
 ## Páginas de referencia
 
