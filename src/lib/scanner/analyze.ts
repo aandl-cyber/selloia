@@ -128,14 +128,26 @@ function scriptsDeclarados(html: string): string[] {
 /**
  * Código JavaScript embebido en la página.
  *
- * Existe por separado del documento porque un identificador como `zE` o
- * `driftConfig` solo tiene sentido dentro de un script. Buscarlo en el HTML
- * entero hacía que "ze" (que aparece en Wikipedia, en el BOE y en GitHub)
- * marcara cualquier web como si tuviera Zendesk instalado.
+ * Excluye los `<script>` que no son JavaScript. Los bloques de datos
+ * estructurados (`application/ld+json`) contienen texto plano, y en el caso de
+ * sello-ia.com ese texto era el FAQ entero, con nombres de proveedores citados.
+ * Contarlo como código hacía que la propia web apareciera con ElevenLabs y
+ * Synthesia instalados porque el artículo que explica qué es ElevenLabs las
+ * mencionaba.
+ *
+ * Eso no es lo mismo que usar un sistema de IA, que es lo que Art. 50 regula.
  */
 function codigoJs(html: string): string {
   const partes: string[] = [];
-  for (const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) partes.push(m[1]);
+  for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    const atributos = m[1] ?? "";
+    const tipo = atributos.match(/\btype\s*=\s*["']?([^"'\s>]+)/i)?.[1]?.toLowerCase();
+    // Sin `type`, es JavaScript. Con `type`, solo si es un flavour de JS.
+    if (tipo && !/^(module|text\/javascript|application\/javascript|text\/jsx)$/.test(tipo)) continue;
+    // Los JSON-LD y application/json no son código.
+    if (/json/.test(tipo ?? "")) continue;
+    partes.push(m[2] ?? "");
+  }
   return partes.join("\n");
 }
 
@@ -152,11 +164,33 @@ function tokenEsDelicado(token: string): boolean {
   return !/[./]/.test(token);
 }
 
+/**
+ * Quita el contenido de las cadenas literales.
+ *
+ * Next.js (y casi cualquier framework con render en cliente) incrusta el texto
+ * de la página dentro de scripts inline: `self.__next_f.push(["...Intercom,
+ * Tidio, Crisp..."])`. Ese texto es contenido editorial, no código. Buscando
+ * identificadores sobre el script entero, una web que habla de los proveedores
+ * de IA aparecía como si los tuviera instalados: el caso de sello-ia.com, que
+ * se detectaba a sí misma con ElevenLabs y Synthesia por tener un artículo que
+ * explica qué son.
+ *
+ * Un identificador real (`window.Intercom`) sobrevive; una palabra dentro de
+ * comillas desaparece.
+ */
+function sinCadenas(js: string): string {
+  return js
+    .replace(/`(?:\\.|[^`\\])*`/g, " ") // plantillas
+    .replace(/"(?:\\.|[^"\\])*"/g, " ")
+    .replace(/'(?:\\.|[^'\\])*'/g, " "); // cadenas simples
+}
+
 /** Un token suelto debe aparecer como identificador, no como palabra suelta. */
 function comoIdentificador(js: string, token: string): boolean {
   const t = token.toLowerCase();
+  const codigo = sinCadenas(js);
   // `zE`, `zESettings`, `_hsq`, `window.driftConfig`, `Tawk_API`…
-  return new RegExp(`(?:^|[^a-z0-9_$.])${escapeRegExp(t)}(?:[^a-z0-9_$]|$)`, "i").test(js);
+  return new RegExp(`(?:^|[^a-z0-9_$.])${escapeRegExp(t)}(?:[^a-z0-9_$]|$)`, "i").test(codigo);
 }
 
 /**

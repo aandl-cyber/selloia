@@ -28,8 +28,22 @@ const DIR = "src/lib/scanner/__fixtures__";
 function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+function sinCadenas(js) {
+  return js
+    .replace(/`(?:\\.|[^`\\])*`/g, " ")
+    .replace(/"(?:\\.|[^"\\])*"/g, " ")
+    .replace(/'(?:\\.|[^'\\])*'/g, " ");
+}
 function codigoJs(html) {
-  return [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((m) => m[1]).join("\n");
+  const partes = [];
+  for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    const attrs = m[1] ?? "";
+    const tipo = attrs.match(/\btype\s*=\s*["']?([^"'\s>]+)/i)?.[1]?.toLowerCase();
+    if (tipo && !/^(module|text\/javascript|application\/javascript|text\/jsx)$/.test(tipo)) continue;
+    if (/json/.test(tipo ?? "")) continue;
+    partes.push(m[2] ?? "");
+  }
+  return partes.join("\n");
 }
 function scriptsDeclarados(html) {
   return [...new Set([...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((m) => m[1]))];
@@ -38,7 +52,7 @@ function tokenEsDelicado(token) {
   return !/[./]/.test(token);
 }
 function comoIdentificador(js, token) {
-  return new RegExp(`(?:^|[^a-z0-9_$.])${escapeRegExp(token)}(?:[^a-z0-9_$]|$)`, "i").test(js);
+  return new RegExp(`(?:^|[^a-z0-9_$.])${escapeRegExp(token)}(?:[^a-z0-9_$]|$)`, "i").test(sinCadenas(js));
 }
 function enUrlDeScript(urls, token) {
   const t = token.toLowerCase();
