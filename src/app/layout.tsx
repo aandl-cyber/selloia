@@ -217,6 +217,25 @@ export default function RootLayout({
               SelloIA verifica el cumplimiento del Art. 50 del Reglamento (UE) 2024/1689,
               exigible desde el 2 de agosto de 2026.
             </p>
+
+            {/* Presencia en Que IA Es?, directorio español de herramientas de IA.
+                El alta gratuita exige este enlace de vuelta, que además aporta un
+                backlink dofollow. El alt describe lo que es, sin inventar premios. */}
+            <a
+              href="https://queia.es"
+              target="_blank"
+              rel="noopener"
+              className="mt-6 inline-block rounded-md opacity-80 transition-opacity hover:opacity-100"
+              title="Directorio de herramientas de IA en español"
+            >
+              <img
+                src="https://queia.es/badge/queia-oscura.svg"
+                alt="Que IA Es?, directorio de herramientas de IA en español"
+                width="180"
+                height="45"
+                loading="lazy"
+              />
+            </a>
           </div>
         </footer>
       </body>
