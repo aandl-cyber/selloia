@@ -49,7 +49,8 @@ const ESTADO = ".datos/emisor-estado.json";
 async function guardarEnviado(email) {
   let e = { nota: "agencias", enviados: [], rebotes: 0, dia: new Date().toISOString().slice(0, 10), total: 0 };
   try {
-    e = JSON.parse(await readFile(ESTADO, "utf8"));
+    const bruto = await readFile(ESTADO, "utf8");
+    e = JSON.parse(bruto.replace(/^﻿/, ""));
   } catch {
     /* primer arranque */
   }
@@ -161,7 +162,11 @@ function parsear(csv) {
   // Nunca repetir un envío anterior.
   let yaEnviados = new Set();
   try {
-    const e = JSON.parse(await readFile(".datos/emisor-estado.json", "utf8"));
+    // El BOM que escriben algunas herramientas de Windows mata a JSON.parse:
+    // el error se traga en el catch, el script cree que no ha enviado nada y
+    // reenvía a los primeros de la lista. Se quita siempre antes de parsear.
+    const bruto = await readFile(ESTADO, "utf8");
+    const e = JSON.parse(bruto.replace(/^﻿/, ""));
     yaEnviados = new Set((e.enviados ?? []).map((x) => String(x).toLowerCase()));
   } catch {
     /* primer arranque */
