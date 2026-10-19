@@ -52,46 +52,97 @@ async function git(args) {
   }
 }
 
-/** Línea del log del emisor con su marca de tiempo ya interpretada. */
-function parsearLogEmisor(lineas) {
+/**
+ * Reconstruye las marcas de tiempo de un log que solo guarda HH:MM:SS.
+ *
+ * Hay dos trampas aquí y las dos ya han fallado antes:
+ *
+ * 1. Los scripts escriben con `toISOString()`, o sea UTC. Git usa hora local.
+ *    Si se mezclan sin convertir, el panel muestra horas que no cuadran.
+ * 2. Un log que cruza medianoche no puede decir a qué día pertenece cada línea.
+ *    Se resuelve anclaindo en la fecha de modificación del fichero y retrocediendo:
+ *    si al ir hacia atrás la hora aumenta, se cruzó medianoche y esa línea es del
+ *    día anterior.
+ *
+ * Se devuelve en hora local, que es la que quiere ver quien lee el informe.
+ */
+function reconstruir(lineas, mtime) {
+  const RE = /^\[(\d{2}):(\d{2}):(\d{2})\]/;
   const out = [];
-  const hora = /^\[(\d{2}:\d{2}:\d{2})\]/;
-  for (const l of lineas) {
-    const m = l.match(hora);
-    if (!m) continue;
-    const ok = l.match(/\[ok\]\s+(\S+)\s+.*?(\S+@\S+)/);
-    if (ok) {
-      out.push({ t: m[1], tipo: "envio", texto: `Email enviado a ${ok[2]} (${ok[1]})`, ref: ok[1] });
-      continue;
+
+  // Ancla: la última línea del log coincide con la última escritura del fichero.
+  // El log guarda hora UTC, así que hay que llevar la hora local del fichero a
+  // UTC antes de usarla como ancla: local - desfase. `getTimezoneOffset()` es
+  // UTC menos local, y en verano español devuelve -120.
+  const anclaUTC = new Date(mtime.getTime() + mtime.getTimezoneOffset() * 60000);
+  let diaUTC = new Date(anclaUTC.getFullYear(), anclaUTC.getMonth(), anclaUTC.getDate());
+
+  // Índice de las líneas que tienen hora, de la última a la primera.
+  const indices = [];
+  for (let i = lineas.length - 1; i >= 0; i--) if (RE.test(lineas[i])) indices.push(i);
+
+  let horaPrevia = null;
+  for (const i of indices) {
+    const m = lineas[i].match(RE);
+    const h = Number(m[1]);
+
+    // Retroceder en el log y que la hora suba significa que cruzamos medianoche.
+    if (horaPrevia !== null && h > horaPrevia) {
+      diaUTC = new Date(diaUTC.getTime() - 86400000);
     }
-    const fin = l.match(/terminado\.\s*(\d+)\s+enviados/);
-    if (fin) out.push({ t: m[1], tipo: "fin", texto: `El emisor terminó: ${fin[1]} enviados en total` });
+    horaPrevia = h;
+
+    // El log guarda una hora de pared en UTC. Para obtener el instante real hay
+    // que construirlo como instante UTC (`Date.UTC`) y no como fecha local: si se
+    // hace `new Date(y, m, d, h)`, h se interpreta como hora local y el desfase
+    // se pierde. Al pedirle después las horas locales a ese Date, ya vienen
+    // convertidas.
+    const fechaLocal = new Date(
+      Date.UTC(diaUTC.getFullYear(), diaUTC.getMonth(), diaUTC.getDate(), h, Number(m[2]), Number(m[3]))
+    );
+    out[i] = fechaLocal;
   }
+
   return out;
 }
 
-function parsearLogGenerico(lineas, tipoPorDefecto = "info") {
-  const out = [];
-  const hora = /^\[(\d{2}:\d{2}:\d{2})\]/;
-  for (const l of lineas) {
-    const m = l.match(hora);
-    if (!m) continue;
-    const resto = l.replace(hora, "").replace(/^\]\s*/, "").trim();
-    if (!resto) continue;
-    const tipo = /error/i.test(resto) ? "error" : /✓|ok/i.test(resto) ? "ok" : tipoPorDefecto;
-    out.push({ t: m[1], tipo, texto: resto });
+/** Lee un log y devuelve sus líneas con la hora real ya en local. */
+async function leerLogConFechas(ruta) {
+  try {
+    const lineas = (await readFile(ruta, "utf8")).split(/\r?\n/).filter(Boolean);
+    const { mtime } = await import("node:fs/promises").then((fs) => fs.stat(ruta));
+    const fechas = reconstruir(lineas, mtime);
+    return lineas.map((l, i) => ({ linea: l, fecha: fechas[i] ?? null }));
+  } catch {
+    return [];
   }
-  return out;
 }
 
 /** Convierte "19/10 12:37" de git en algo ordenable. */
-function commitATimeline(linea) {
+/**
+ * Convierte una fecha de git ("19/10 12:37") a Date local.
+ *
+ * Git ya devuelve hora local, así que aquí no hay conversión: solo construir la
+ * fecha. Necesita el año, que git no incluye con `--date=format`.
+ */
+function commitATimeline(linea, anio) {
   const [sha, fecha, ...resto] = linea.split("|");
   if (!sha) return null;
-  const [dd, mm, hh] = (fecha ?? "").split(" ");
+  // El formato de git es "19/10 12:58": día y mes van juntos separados por "/",
+  // y la hora es otro campo. Partirlo solo por espacios daba una fecha inválida
+  // y por eso el informe salía sin commits.
+  const [parteFecha, parteHora] = (fecha ?? "").split(" ");
+  const [dd, mm] = (parteFecha ?? "/").split("/");
+  const [hh, min] = (parteHora ?? "0:0").split(":");
+  // Ojo al orden: el constructor es (anio, mes, dia, ...). Pasarlo como
+  // (dia, mes, anio) produce una fecha válida pero absurda — 19/10/2026 se
+  // convertía en 17 de abril de 1925 — y como no es Invalid Date, ningún
+  // filtro lo detectaba.
+  const d = new Date(anio, Number(mm) - 1, Number(dd), Number(hh || 0), Number(min || 0));
+  if (isNaN(d.getTime())) return null;
+  if (d.getDate() !== Number(dd) || d.getMonth() !== Number(mm) - 1) return null;
   return {
-    t: hh ?? "",
-    fecha: `${dd}/${mm}`,
+    fechaObj: d,
     tipo: "commit",
     sha: sha.slice(0, 7),
     texto: resto.join("|"),
@@ -112,7 +163,7 @@ function commitATimeline(linea) {
   const commits = (await git('log --pretty=format:"%h|%ad|%s" --date=format:"%d/%m %H:%M" --all'))
     .split(/\r?\n/)
     .filter(Boolean)
-    .map(commitATimeline)
+    .map((l) => commitATimeline(l, ahora.getFullYear()))
     .filter(Boolean);
 
   // ── Estado del emisor ──
@@ -122,15 +173,39 @@ function commitATimeline(linea) {
   } catch {}
 
   // ── Logs ──
-  const lineasEmisor = await leerLinesSeguro(join(TEMP, "emisor.log"));
-  const lineasCadena = await leerLinesSeguro(join(TEMP, "cadena.log"));
-  const lineasRespondedor = await leerLinesSeguro(join(TEMP, "respondedor.log"));
-  const lineasPipeline = await leerLinesSeguro(join(RAIZ, "docs/outreach/pipeline.log"));
+  const logEmisor = await leerLogConFechas(join(TEMP, "emisor.log"));
+  const logCadena = await leerLogConFechas(join(TEMP, "cadena.log"));
+  const logRespondedor = await leerLogConFechas(join(TEMP, "respondedor.log"));
+  const logPipeline = await leerLogConFechas(join(RAIZ, "docs/outreach/pipeline.log"));
 
-  const envios = parsearLogEmisor(lineasEmisor);
-  const cadena = parsearLogGenerico(lineasCadena);
-  const contestador = parsearLogGenerico(lineasRespondedor);
-  const pipeline = parsearLogGenerico(lineasPipeline);
+  const envios = [];
+  for (const { linea, fecha } of logEmisor) {
+    if (!fecha) continue;
+    const ok = linea.match(/\[ok\]\s+(\S+)\s+.*?(\S+@\S+)/);
+    if (ok) {
+      envios.push({ fechaObj: fecha, tipo: "envio", texto: `Email enviado a ${ok[2]} (${ok[1]})` });
+      continue;
+    }
+    const fin = linea.match(/terminado\.\s*(\d+)\s+enviados/);
+    if (fin) {
+      envios.push({ fechaObj: fecha, tipo: "fin", texto: `El emisor terminó: ${fin[1]} enviados en total` });
+    }
+  }
+
+  const desdeGenerico = (registros) => {
+    const out = [];
+    for (const { linea, fecha } of registros) {
+      if (!fecha) continue;
+      const resto = linea.replace(/^\[\d{2}:\d{2}:\d{2}\]\s*/, "").trim();
+      if (!resto) continue;
+      out.push({ fechaObj: fecha, tipo: /error/i.test(resto) ? "error" : /✓|\bok\b/i.test(resto) ? "ok" : "info", texto: resto });
+    }
+    return out;
+  };
+
+  const cadena = desdeGenerico(logCadena);
+  const contestador = desdeGenerico(logRespondedor);
+  const pipeline = desdeGenerico(logPipeline);
 
   // ── Prospección ──
   const cola = (await leerLinesSeguro(join(RAIZ, "docs/outreach/cola.csv"))).slice(1).filter(Boolean);
@@ -190,16 +265,24 @@ function commitATimeline(linea) {
   }
 
   // ── Línea de tiempo unificada ──
-  const eventos = [
-    ...commits.map((c) => ({ ...c, orden: c.fecha + " " + c.t, fuente: "repositorio" })),
-    ...envios.map((e) => ({ ...e, orden: e.t, fuente: "email", fecha: fechaCorta(ahora) })),
-    ...cadena.map((e) => ({ ...e, orden: e.t, fuente: "cadena", fecha: fechaCorta(ahora) })),
-    ...contestador.map((e) => ({ ...e, orden: e.t, fuente: "contestador", fecha: fechaCorta(ahora) })),
-    ...pipeline.map((e) => ({ ...e, orden: e.t, fuente: "pipeline", fecha: fechaCorta(ahora) })),
-  ].sort((a, b) => String(b.orden).localeCompare(String(a.orden)));
+  // Todo se ordena por instante real, no por texto: comparar "09:08" con
+  // "19/10 12:37" como cadenas es justo lo que descuadraba las horas.
+  const conFecha = (e) => `${pad(e.fechaObj.getDate())}/${pad(e.fechaObj.getMonth() + 1)} ${pad(e.fechaObj.getHours())}:${pad(e.fechaObj.getMinutes())}`;
+  const conFuente = (lista, fuente) => lista.map((e) => ({ ...e, fuente }));
 
-  function fechaCorta(d) {
-    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" });
+  const eventos = [
+    ...commits,
+    ...conFuente(envios, "email"),
+    ...conFuente(cadena, "cadena"),
+    ...conFuente(contestador, "contestador"),
+    ...conFuente(pipeline, "pipeline"),
+  ]
+    .filter((e) => e.fechaObj instanceof Date && !isNaN(e.fechaObj))
+    .sort((a, b) => b.fechaObj - a.fechaObj)
+    .map((e) => ({ ...e, etiqueta: conFecha(e) }));
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
   }
 
   // ── HTML ──
@@ -213,6 +296,11 @@ function commitATimeline(linea) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sin esto el navegador puede servir una copia vieja del informe y las horas
+     parecerian no cuadrar cuando en realidad el fichero si esta al dia. -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>linacbericht</title>
 <style>
   :root{
@@ -358,7 +446,7 @@ function commitATimeline(linea) {
       .slice(0, 80)
       .map(
         (e) => `<div class="ev ${claseTipo[e.tipo] ?? ""}">
-      <div class="meta">${esc(e.fecha ?? "")} ${esc(e.t ?? "")} <span class="src">${esc(e.fuente ?? "")}</span></div>
+      <div class="meta">${esc(e.etiqueta ?? "")} <span class="src">${esc(e.fuente ?? (e.tipo === "commit" ? "repositorio" : ""))}</span></div>
       <div class="txt">${e.enlace ? `<a href="${esc(e.enlace)}">${esc(e.texto)}</a>` : esc(e.texto)}</div>
     </div>`
       )
