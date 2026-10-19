@@ -262,6 +262,64 @@ export default function Resultado({ resultado }: { resultado: ResultadoScan }) {
         </div>
       )}
 
+      {/* Cierre comercial.
+          Va aquí, y no antes, por un motivo concreto: el visitante ya ha leído
+          qué tiene mal, tiene el texto para arreglarlo delante, y ahora decide.
+          Si el botón de compra aparece antes del diagnóstico, es publicidad; si
+          aparece después, es la respuesta a lo que acaba de leer. */}
+      {problemas.length > 0 && (
+        <div className="border-b border-piedra-200 bg-piedra-900 p-6 sm:p-8">
+          <h4 className="font-display text-xl font-bold text-white">
+            El texto ya lo tienes. Lo que falta es que no se rompa mañana.
+          </h4>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-piedra-300">
+            Puedes pegar el aviso ahora mismo y quedarte ahí. El problema es que
+            nadie lo revisa después: actualizáis el tema, alguien monta un chatbot
+            nuevo, el CSS tapa el aviso en móvil y nadie se entera hasta que alguien
+            pregunta.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-piedra-700 bg-piedra-800 p-5">
+              <p className="text-sm font-semibold text-white">Pro · 19 € al mes</p>
+              <p className="mt-1 text-xs text-piedra-400">Por dominio</p>
+              <ul className="mt-3 space-y-1.5 text-sm text-piedra-300">
+                <li>✓ Reescanéo cada 30 días</li>
+                <li>✓ Te aviso el día que el aviso desaparezca</li>
+                <li>✓ Te aviso si montas un sistema nuevo</li>
+                <li>✓ Cancelas cuando quieras</li>
+              </ul>
+              <a href="/precios" className="boton boton-acento mt-4 w-full">
+                Contratar Pro
+              </a>
+            </div>
+
+            <div className="rounded-lg border border-piedra-700 bg-piedra-800 p-5">
+              <p className="text-sm font-semibold text-white">Auditoría · 199 €</p>
+              <p className="mt-1 text-xs text-piedra-400">Pago único</p>
+              <ul className="mt-3 space-y-1.5 text-sm text-piedra-300">
+                <li>✓ Todo lo de Pro durante 12 meses</li>
+                <li>✓ Instalamos los avisos y la página de transparencia</li>
+                <li>✓ Informe firmado en PDF</li>
+                <li>✓ Canal directo por email</li>
+              </ul>
+              {/* Botón claro, no `boton-primario`: ese es #1c1917 sobre una
+                  tarjeta #292524, es decir casi negro sobre casi negro. Además
+                  la jerarquía queda mejor: Pro en azul (la compra de impulso),
+                  Auditoría en blanco. */}
+              <a href="/precios" className="boton boton-secundario mt-4 w-full">
+                Pedir auditoría
+              </a>
+            </div>
+          </div>
+
+          <p className="mt-5 text-xs leading-relaxed text-piedra-400">
+            Si el escaneo se equivoca, escríbenos y lo arreglamos o te devolvemos el
+            dinero. SelloIA es un producto nuevo y preferimos decirlo por adelantado.
+          </p>
+        </div>
+      )}
+
       {/* Pie técnico */}
       <div className="p-6">
         <dl className="grid grid-cols-2 gap-4 text-xs sm:grid-cols-4">
