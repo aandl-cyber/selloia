@@ -23,6 +23,8 @@ const RAIZ = process.cwd();
 const ESCRITORIO = join(homedir(), "Desktop");
 const TEMP = process.env.TEMP ?? process.env.TMP ?? "/tmp";
 const SALIDA = join(ESCRITORIO, "linacbericht.html");
+const REPO = process.env.GITHUB_REPO ?? "aandl-cyber/selloia";
+const GH_TOKEN = process.env.GITHUB_TOKEN ?? "";
 
 // ── Recogida de datos ────────────────────────────────────────────────────────
 
@@ -150,6 +152,121 @@ function commitATimeline(linea, anio) {
   };
 }
 
+// ── Visitas ─────────────────────────────────────────────────────────────────
+//
+// Se leen los cubos horarios que escribe /api/visita. Si no hay ninguno todavía,
+// el informe lo dice claro en lugar de mostrar ceros como si fueran la realidad.
+
+async function leerCubos() {
+  const url = `https://api.github.com/repos/${REPO}/contents/.datos/visitas`;
+  const lista = await git.call(null); // no-op: mantiene el estilo
+  void lista;
+  const r = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${GH_TOKEN}`,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "linacbericht",
+    },
+  });
+  if (r.status === 404) return [];
+  if (!r.ok) return [];
+  const j = await r.json();
+  if (!Array.isArray(j)) return [];
+
+  const cubos = [];
+  for (const f of j.filter((x) => x.name.endsWith(".json")).slice(-72)) {
+    const clave = f.name.replace(".json", "");
+    try {
+      const cr = await fetch(f.download_url, { headers: { "User-Agent": "linacbericht" } });
+      if (!cr.ok) continue;
+      cubos.push(JSON.parse(await cr.text()));
+    } catch {
+      /* un cubo ilegible no debe tumbar el informe */
+    }
+  }
+  return cubos.sort((a, b) => String(a.hora).localeCompare(String(b.hora)));
+}
+
+/** Nombre del país a partir del código ISO, sin meter una tabla gigante. */
+const PAISES = {
+  ES: "España", US: "Estados Unidos", MX: "México", AR: "Argentina", CO: "Colombia",
+  GB: "Reino Unido", FR: "Francia", DE: "Alemania", IT: "Italia", PT: "Portugal",
+  CA: "Canadá", CL: "Chile", PE: "Perú", UY: "Uruguay", VE: "Venezuela", BR: "Brasil",
+  NL: "Países Bajos", BE: "Bélgica", CH: "Suiza", IE: "Irlanda", PL: "Polonia",
+  RO: "Rumanía", SE: "Suecia", NO: "Noruega", DK: "Dinamarca", FI: "Finlandia",
+  AT: "Austria", CZ: "República Checa", GR: "Grecia", HU: "Hungría", IL: "Israel",
+  IN: "India", AU: "Australia", NZ: "Nueva Zelanda", JP: "Japón", CN: "China",
+  SV: "El Salvador", CR: "Costa Rica", PA: "Panamá", DO: "República Dominicana",
+  GT: "Guatemala", PR: "Puerto Rico", MA: "Marruecos", DZ: "Argelia",
+};
+const pais = (c) => PAISES[c] ?? (c === "??" || c === "" ? "Desconocido" : c);
+
+const NOMBRE_DIA = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+
+function resumenVisitas(cubos) {
+  const hoy = new Date();
+  const claveHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
+
+  let hoyTotal = 0;
+  const porPais = {};
+  const porRuta = {};
+  const unicosHoy = new Set();
+  let u24h = 0;
+  const porDia = {};
+  const porHora = {};
+
+  const hace24 = Date.now() - 24 * 3600_000;
+
+  for (const c of cubos) {
+    const fecha = new Date(
+      Number(c.hora.slice(0, 4)),
+      Number(c.hora.slice(5, 7)) - 1,
+      Number(c.hora.slice(8, 10)),
+      Number(c.hora.slice(11, 13))
+    );
+    const dia = c.hora.slice(0, 10);
+    const esHoy = dia === claveHoy;
+
+    porDia[dia] = (porDia[dia] ?? 0) + (c.total ?? 0);
+    porHora[c.hora] = c.total ?? 0;
+    if (fecha.getTime() >= hace24) u24h += c.total ?? 0;
+    if (esHoy) hoyTotal += c.total ?? 0;
+
+    for (const [p, n] of Object.entries(c.porPais ?? {})) porPais[p] = (porPais[p] ?? 0) + n;
+    for (const [r, n] of Object.entries(c.porRuta ?? {})) porRuta[r] = (porRuta[r] ?? 0) + n;
+    if (esHoy) for (const u of c.unicos ?? []) unicosHoy.add(u);
+  }
+
+  // Serie de 24 horas, de la más antigua a la más reciente.
+  const serie = [];
+  for (let i = 23; i >= 0; i--) {
+    const d = new Date(hoy.getTime() - i * 3600_000);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}`;
+    serie.push({ hora: k, n: porHora[k] ?? 0 });
+  }
+
+  const dias = Object.entries(porDia)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-14)
+    .map(([d, n]) => {
+      const f = new Date(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8, 10)));
+      return { etiqueta: `${NOMBRE_DIA[f.getDay()]} ${d.slice(8, 10)}/${d.slice(5, 7)}`, n };
+    });
+
+  return {
+    hayDatos: cubos.length > 0,
+    hoyTotal,
+    u24h,
+    unicosHoy: unicosHoy.size,
+    paises: Object.entries(porPais).sort((a, b) => b[1] - a[1]),
+    rutas: Object.entries(porRuta).sort((a, b) => b[1] - a[1]).slice(0, 10),
+    serie,
+    dias,
+    maxHora: Math.max(1, ...serie.map((s) => s.n)),
+    maxDia: Math.max(1, ...dias.map((d) => d.n), 1),
+  };
+}
+
 (async () => {
   const ahora = new Date();
   const fechaLarga = ahora.toLocaleDateString("es-ES", {
@@ -264,6 +381,9 @@ function commitATimeline(linea, anio) {
     }
   }
 
+  // ── Visitas ──
+  const cubos = await leerCubos();
+  const v = resumenVisitas(cubos);
   // ── Línea de tiempo unificada ──
   // Todo se ordena por instante real, no por texto: comparar "09:08" con
   // "19/10 12:37" como cadenas es justo lo que descuadraba las horas.
@@ -367,6 +487,18 @@ function commitATimeline(linea, anio) {
 
   .nota{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--warn);
     border-radius:8px;padding:13px 17px;color:var(--muted);font-size:13.5px}
+
+  /* Gráficos de barras */
+  .graf{display:flex;align-items:flex-end;gap:3px;height:130px;overflow-x:auto}
+  .graf .col{flex:1;min-width:16px;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-end;gap:4px}
+  .graf .barra{width:100%;max-width:34px;background:var(--accent);border-radius:3px 3px 0 0;
+    min-height:3px;transition:height .3s}
+  .graf .col span{font:11px ui-monospace,Menlo,monospace;color:var(--txt);height:13px}
+  .graf .col em{font:9.5px ui-monospace,Menlo,monospace;color:var(--faint);
+    font-style:normal;white-space:nowrap}
+  .flag{display:inline-block;min-width:26px;font:11px ui-monospace,Menlo,monospace;
+    color:var(--faint)}
   footer{margin-top:34px;color:var(--faint);font-size:12px;text-align:center;line-height:1.9}
   a{color:var(--send)}
 </style>
@@ -439,6 +571,70 @@ function commitATimeline(linea, anio) {
       ${Object.keys(porMotivo).length ? "" : "<tr><td colspan=3>Sin datos</td></tr>"}
     </tbody>
   </table>
+
+  <h2>Visitas al sitio</h2>
+  ${
+    v.hayDatos
+      ? `
+  <div class="grid" style="margin-bottom:16px">
+    <div class="card"><div class="n">${v.hoyTotal}</div><div class="l">Visitas hoy</div></div>
+    <div class="card"><div class="n">${v.u24h}</div><div class="l">Visitas 24 h</div></div>
+    <div class="card"><div class="n">${v.unicosHoy}</div><div class="l">Únicos hoy</div></div>
+    <div class="card ${v.unicosHoy > 0 ? "ok" : "warn"}"><div class="n">${v.unicosHoy > 0 ? "SÍ" : "NO"}</div><div class="l">¿Ha entrado alguien?</div></div>
+  </div>
+
+  <div class="tarjeta" style="padding:20px 22px;margin-bottom:16px">
+    <p class="t" style="color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">Últimas 24 horas</p>
+    <div class="graf">
+      ${v.serie
+        .map(
+          (s) =>
+            `<div class="col"><div class="barra" style="height:${Math.max(3, (s.n / v.maxHora) * 92)}px;${s.n ? "" : "background:#292524;"}"></div><span>${s.n || ""}</span><em>${s.hora.slice(11)}</em></div>`
+        )
+        .join("")}
+    </div>
+  </div>
+
+  <div class="tarjeta" style="padding:20px 22px;margin-bottom:16px">
+    <p class="t" style="color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px">Por día</p>
+    <div class="graf">
+      ${v.dias
+        .map(
+          (d) =>
+            `<div class="col"><div class="barra" style="height:${Math.max(3, (d.n / v.maxDia) * 92)}px;${d.n ? "" : "background:#292524;"}"></div><span>${d.n || ""}</span><em>${d.etiqueta}</em></div>`
+        )
+        .join("")}
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>País</th><th>Visitas</th><th>%</th></tr></thead>
+    <tbody>
+      ${
+        v.paises.length
+          ? v.paises
+              .map(([p, n]) => {
+                const pct = v.hoyTotal ? Math.round((n / v.unicosHoy || 1) * 0) : 0;
+                void pct;
+                const total = v.paises.reduce((a, b) => a + b[1], 0);
+                return `<tr><td><span class="flag">${p}</span> ${esc(pais(p))}</td><td>${n}</td><td>${Math.round((n / total) * 100)}%</td></tr>`;
+              })
+              .join("")
+          : "<tr><td colspan=3>Ninguna visita registrada</td></tr>"
+      }
+    </tbody>
+  </table>
+
+  ${
+    v.rutas.length
+      ? `<table style="margin-top:12px">
+    <thead><tr><th>Página más visitada</th><th>Visitas</th></tr></thead>
+    <tbody>${v.rutas.map(([r, n]) => `<tr><td><code>${esc(r)}</code></td><td>${n}</td></tr>`).join("")}</tbody>
+  </table>`
+      : ""
+  }`
+      : `<div class="nota">Todavía no hay visitas registradas. El contador se puso en marcha hoy: aparece en cuanto entre alguien por primera vez.</div>`
+  }
 
   <h2>Línea de tiempo</h2>
   <div class="tl">

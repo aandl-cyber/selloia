@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
+import TrackerVisitas from "@/components/tracker-visitas";
 import "./globals.css";
 
 const SITIO = "https://sello-ia.com";
@@ -105,6 +106,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <Analytics />
+        <TrackerVisitas />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION) }}
