@@ -93,6 +93,7 @@ export const viewport: Viewport = {
 const NAV = [
   { href: "/precios", texto: "Precios" },
   { href: "/comprobar", texto: "¿Estoy cubierto?" },
+  { href: "/informacion-trabajadores", texto: "Plantilla" },
   { href: "/blog", texto: "Blog" },
   { href: "/transparencia-ia", texto: "Transparencia" },
 ];

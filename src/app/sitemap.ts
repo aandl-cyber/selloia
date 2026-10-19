@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const estaticas = [
     { path: "", prioridad: 1.0, frecuencia: "weekly" as const },
     { path: "/comprobar", prioridad: 0.9, frecuencia: "monthly" as const },
+    { path: "/informacion-trabajadores", prioridad: 0.9, frecuencia: "monthly" as const },
     { path: "/precios", prioridad: 0.9, frecuencia: "monthly" as const },
     { path: "/sello", prioridad: 0.8, frecuencia: "monthly" as const },
     { path: "/blog", prioridad: 0.8, frecuencia: "weekly" as const },
