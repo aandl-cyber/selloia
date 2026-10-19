@@ -360,14 +360,149 @@ export const ARTICULOS: Articulo[] = [
 
         <H2>La conclusion honesta</H2>
         <P>
-          De cada diez webs que escaneo, <strong>nueve tienen al menos un sistema de IA</strong>{" "}
-          (Zendesk, HubSpot, Intercom y Tidio estan en todas partes) y{" "}
-          <strong>al menos seis no cumplen el Art. 50.1</strong>.
+          La buena noticia es que la mayor parte se corrige en una tarde, con textos que ya
+          estan redactados y un aviso que pegar en el pie de la web.
         </P>
         <P>
-          La buena noticia es que el 80 % se corrige en una tarde, con textos que ya estan
-          redactados. La mala es que la ley lleva{" "}
-          <strong>dos meses y medio</strong> en vigor y casi nadie se ha enterado.
+          Este articulo estaba citando antes una estadistica del 90 % de incumplimiento
+          medida con nuestro propio escaner. La retiramos porque el escaner tenia un fallo
+          que leia como IA el texto editorial de la pagina: marcaba como chatbot lo que en
+          realidad era una frase escribiendo sobre chatbots. Preferimos no dar una cifra
+          antes que darla mal.
+        </P>
+        <P>
+          Lo que si se puede afirmar, con el escaner ya corregido y contrastado contra
+          medios como Wikipedia, el BOE o Xataka que no tienen ningun sistema de IA, es
+          esto: <strong>los proveedores de chatbot se instalan mas de lo que parece, pero
+          el incumplimiento real esta en las webs que los usan sin decir nada</strong>. Si
+          tu web tiene un Zendesk, un HubSpot o un Intercom y no avisas, tienes un
+          problema. Compruebalo en 60 segundos.
+        </P>
+      </>
+    ),
+  },
+  {
+    slug: "aepd-advertencias-ia-2026",
+    titulo:
+      "La AEPD ya avisa a las empresas por su IA: que es una advertencia y que tienes que hacer",
+    descripcion:
+      "La AEPD ha dirigido tres advertencias en un mes sobre sistemas de IA. Explicamos que es una advertencia, por que aparece antes de la multa y que obligaciones te deja encima la mesa ahora mismo.",
+    fecha: "2026-10-19",
+    minutos: 8,
+    categoria: "Sanciones",
+    faq: [
+      {
+        q: "Me pueden multar ya por usar IA en mi web?",
+        a: "La Ley de IA todavia no esta en vigor de forma completa, pero si rigen el RGPD y el Real Decreto 723/2026, que entro en vigor el 5 de octubre de 2026. La AEPD ya estaORIES usando la facultad preventiva del articulo 58.2.a del RGPD, que permite advertir antes de sancionar. La advertencia no es una multa, pero es el aviso de que la proxima vez si lo sera.",
+      },
+      {
+        q: "Que es el Real Decreto 723/2026?",
+        a: "Entro en vigor el 5 de octubre de 2026. Obliga a informar por escrito a cada persona trabajadora cuando se usan sistemas algoritmicos o automatizados para decidir sobre sus condiciones de trabajo, y a explicar las pautas, criterios y reglas con las que funcionan.",
+      },
+      {
+        q: "Tengo que avisar a mis empleados si uso un chatbot de atencion al cliente?",
+        a: "No por ese Decreto, que se refiere a decisiones sobre condiciones de trabajo. Si el sistema decide sobre sueldos, presupuestos, promociones o descartes de candidaturas, si. Ese es exactamente el caso de la advertencia AI-00009-2026.",
+      },
+    ],
+    cuerpo: ({ H2, P, UL }) => (
+      <>
+        <P>
+          Si has leido noticias sobre inteligencia artificial y empresas este mes, te has
+          encontrado con una palabra que aparece por todas partes: <strong>advertencia</strong>.
+          No es multa. Pero conviene entender bien que significa, porque la diferencia
+          entre una carta de la AEPD y un expediente es la diferencia entre un aviso y una
+          multa.
+        </P>
+
+        <H2>Que ha hecho la AEPD en los ultimos meses</H2>
+        <UL
+          items={[
+            "23 de septiembre de 2026: advertencia a una empresa que iba a usar IA para analizar curriculos y puntuar candidaturas (AI-00009-2026).",
+            "6 de octubre de 2026: advertencias a dos ayuntamientos por usar IA en videovigilancia.",
+            "7 de octubre de 2026: nota sobre transparencia y garantias en sistemas algoritmicos del ambito laboral.",
+          ]}
+        />
+        <P>
+          Fijate en el detalle: la primera advertencia es a una empresa que{" "}
+          <strong>aun no habia implantado nada</strong>. La AEPD actuo antes de la infraccion.
+        </P>
+
+        <H2>Advertencia no es multa, pero tiene un coste</H2>
+        <P>
+          La advertencia es la facultad preventiva del articulo 58.2.a del RGPD. En la
+          practica significa que la Agencia te dice: esto que vas a hacer no lo vas a
+          poder hacer asi, y tienes esto que cumplir antes de hacerlo.
+        </P>
+        <P>
+          No hay multa. Pero una advertencia obliga a documentar. Y en la practica, casi
+          ninguna empresa tiene esa documentacion hecha. Por eso la advertencia es un
+          aviso previo a un expediente, y por eso es la mejor noticia que puedes tener si
+          llevas meses sin hacer nada: todavia estas a tiempo.
+        </P>
+
+        <H2>La referencia del caso</H2>
+        <P>
+          En agosto se confirmo una <strong>sancion de 500.000 euros a Curenergia</strong>,
+          empresa del Grupo Iberdrola, por un incumplimiento del articulo 25 del RGPD en su
+          canal de atencion al cliente por chat. El fallo: el sistema permitia que un
+          agente atendiera a dos conversaciones a la vez sin cerrarlas, y en una de ellas se
+          copio un dato de un cliente a la conversacion del otro.
+        </P>
+        <P>
+          El detalle relevante no es el canal, es la combinacion: chat + datos personales +
+          una persona tomando decisiones en tiempo real sin control. Ese es el patron que
+          la AEPD esta mirando.
+        </P>
+
+        <H2>El Real Decreto 723/2026: la fecha que se te ha pasado</H2>
+        <P>
+          El 5 de octubre de 2026 entro en vigor el Real Decreto 723/2026. Su articulo 3.2.k
+          obliga a <strong>informar por escrito a cada persona trabajadora</strong> de la
+          existencia de sistemas algoritmicos o automatizados de decision, y, cuando se
+          utilicen para decidir sobre sus condiciones de trabajo, tambien de{" "}
+          <strong>sus pautas, criterios y reglas de funcionamiento</strong>.
+        </P>
+        <P>
+          Ese detalle es la parte que casi todo el mundo pasa por alto: no basta con decir
+          que usas una herramienta. Hay que explicar{" "}
+          <strong>cómo decide</strong>.
+        </P>
+
+        <H2>Y la ley de IA que viene</H2>
+        <P>
+          El proyecto de ley espanol de IA alinea las sanciones con el Reglamento europeo:
+          hasta <strong>35 millones de euros o el 7 % de la facturacion global</strong> para
+          las infracciones mas graves. Y para los incumplimientos leves de{" "}
+          <strong>transparencia</strong>, las multas empiezan en torno a{" "}
+          <strong>6.000 euros</strong>.
+        </P>
+        <P>
+          Ese ultimo dato es el que mas se repite en los articulos de prensa y el que menos
+          se explica: hay un suelo. No es una multa de 35 millones o nada. Existe un
+          escalon intermedio que empieza en unos pocos miles de euros y sube segun el
+          impacto y el tamano de la empresa.
+        </P>
+
+        <H2>Lo que tienes que hacer, en orden</H2>
+        <UL
+          items={[
+            "Inventariar que sistemas de IA usas y para que. Apuntalos todos, no solo los visibles.",
+            "Si interactuan con el publico sin decir que son IA, avisar. Ese es el Art. 50, exigible desde el 2 de agosto de 2026.",
+            "Si el sistema decide sobre condiciones de trabajo, redactar la informacion escrita que pide el Real Decreto 723/2026.",
+            "Dejar constancia de quien revisa las decisiones del sistema y de cuando lo ha hecho.",
+          ]}
+        />
+
+        <H2>Como puedes comprobar la parte rapida</H2>
+        <P>
+          Los dos primeros puntos se comprueban en 60 segundos con el escaner gratuito de
+          este sitio. Mete tu dominio y te dice que sistemas de IA tiene tu web y si avisan
+          de ello. Si algo aparece sin aviso, ya tienes el trabajo localizado.
+        </P>
+        <P>
+          El tercer punto no lo automatiza ninguna herramienta, porque depende de tu sistema
+          interno y de como decides. Si necesitas ese documento, escribenos y lo hacemos
+          contigo: forma parte de la auditoria.
         </P>
       </>
     ),

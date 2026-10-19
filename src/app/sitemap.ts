@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ].map((path) => ({ path, prioridad: 0.3, frecuencia: "yearly" as const }));
 
   const guias = [
+    "/blog/aepd-advertencias-ia-2026",
     "/blog/articulo-50-reglamento-ia",
     "/blog/chatbot-sin-aviso-multa",
     "/blog/obligaciones-pymes-ley-ia",
