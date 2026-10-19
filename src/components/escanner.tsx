@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import Resultado from "@/components/resultado";
 import type { ResultadoScan } from "@/lib/types";
 
@@ -16,6 +16,9 @@ export default function Escanner() {
   const [estado, setEstado] = useState<Estado>({ fase: "inicial" });
   const [email, setEmail] = useState("");
   const router = useRouter();
+  const params = useSearchParams();
+  // Evita que el escaneo se dispare dos veces en modo estricto.
+  const yaDisparo = useRef(false);
 
   async function lanzar(e?: React.FormEvent) {
     e?.preventDefault();
@@ -70,6 +73,38 @@ export default function Escanner() {
       /* silencioso: nunca bloquear la conversión por el email */
     }
   }
+
+  /**
+   * Precarga y ejecuta el escaneo cuando se llega desde el email de la campaña.
+   *
+   * El enlace es `/?u=tu-dominio.com`. Quien lo recibe acaba de leer que su web
+   * incumple el Art. 50, así que es el lead más caliente que entra: llega
+   * sabiendo cuál es su web y esperando ver el resultado. Si el formulario llega
+   * vacío hay que pedirle que escriba lo que ya sabe, y ese segundo paso es donde
+   * se cae la conversión.
+   *
+   * Se normaliza el dominio porque en el CSV puede venir con protocolo o `www`.
+   */
+  useEffect(() => {
+    if (yaDisparo.current) return;
+    const bruto = params.get("u");
+    if (!bruto) return;
+
+    let dominio = bruto.trim().toLowerCase();
+    try {
+      if (!/^https?:\/\//.test(dominio)) dominio = `https://${dominio}`;
+      dominio = new URL(dominio).hostname.replace(/^www\./, "");
+    } catch {
+      return;
+    }
+    if (!dominio.includes(".")) return;
+
+    yaDisparo.current = true;
+    setUrl(dominio);
+    void lanzar();
+    // Solo queremos reaccionar al valor inicial de `u`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const ocupado = estado.fase === "cargando";
 

@@ -1,5 +1,16 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import Escanner from "@/components/escanner";
+
+/** Marcador de carga del escáner. Solo se ve un instante cuando hay `?u=`. */
+function EscanerEsqueleto() {
+  return (
+    <div aria-hidden="true" className="flex flex-col gap-3 sm:flex-row">
+      <div className="h-[3.25rem] flex-1 animate-pulse rounded-lg bg-piedra-100" />
+      <div className="h-[3.25rem] w-full animate-pulse rounded-lg bg-piedra-900/10 sm:w-40" />
+    </div>
+  );
+}
 
 const JSONLD = {
   "@context": "https://schema.org",
@@ -172,7 +183,13 @@ export default function Home() {
 
           <div id="escanner" className="mx-auto mt-10 max-w-2xl scroll-mt-20">
             <div className="tarjeta p-5 shadow-lg shadow-piedra-900/5 sm:p-6">
-              <Escanner />
+              {/* El escáner lee `?u=` para precargar el dominio cuando el visitante
+                  llega desde el email de la campaña. Eso obliga a `useSearchParams`,
+                  que con `cacheComponents` necesita un límite de Suspense para que la
+                  página siga prerendrizándose. */}
+              <Suspense fallback={<EscanerEsqueleto />}>
+                <Escanner />
+              </Suspense>
             </div>
             <p className="mt-4 text-center text-xs text-piedra-400">
               Escaneo técnico automatizado. No sustituye al análisis de un profesional.
