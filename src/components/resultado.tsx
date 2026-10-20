@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ResultadoScan, Severity } from "@/lib/types";
+import BotonPago from "@/components/boton-pago";
 
 const META_SEVERIDAD: Record<Severity, { etiqueta: string; clase: string; punto: string }> = {
   critico: { etiqueta: "Crítico", clase: "riesgo-critico", punto: "bg-riesgo-critico" },
@@ -289,9 +290,16 @@ export default function Resultado({ resultado }: { resultado: ResultadoScan }) {
                 <li>✓ Te aviso si montas un sistema nuevo</li>
                 <li>✓ Cancelas cuando quieras</li>
               </ul>
-              <a href="/precios" className="boton boton-acento mt-4 w-full">
-                Contratar Pro
-              </a>
+              {/* El botón de pago lleva el dominio escaneado como referencia.
+                  Ese dato viaja a Stripe y vuelve por el webhook, que es lo que
+                  permite dar de alta la vigilancia sin pedirle al cliente que
+                  escriba su dominio en un email. */}
+              <BotonPago
+                plan="pro"
+                variante="acento"
+                referencia={host(resultado.urlNormalizada)}
+                className="mt-4"
+              />
             </div>
 
             <div className="rounded-lg border border-piedra-700 bg-piedra-800 p-5">
@@ -307,9 +315,12 @@ export default function Resultado({ resultado }: { resultado: ResultadoScan }) {
                   tarjeta #292524, es decir casi negro sobre casi negro. Además
                   la jerarquía queda mejor: Pro en azul (la compra de impulso),
                   Auditoría en blanco. */}
-              <a href="/precios" className="boton boton-secundario mt-4 w-full">
-                Pedir auditoría
-              </a>
+              <BotonPago
+                plan="auditoria"
+                variante="secundario"
+                referencia={host(resultado.urlNormalizada)}
+                className="mt-4"
+              />
             </div>
           </div>
 

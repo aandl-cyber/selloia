@@ -232,5 +232,5 @@ function parsear(csv) {
     }
   }
 
-  console.log(`\n  Terminado. ${numero} procesados.\n`);
+  console.log(`\n  Terminado. ${i} procesados.\n`);
 })();

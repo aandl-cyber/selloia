@@ -37,7 +37,7 @@ export default function Gracias() {
             Pago recibido
           </h1>
           <p className="mt-3 leading-relaxed text-piedra-600">
-            Gracias. Ya estamos en marcha. A continuación 일어나 lo que toca, sin que
+            Gracias. Ya estamos en marcha. A continuación va lo que toca, sin que
             tengas que hacer nada.
           </p>
         </div>

@@ -13,10 +13,21 @@ export default function BotonPago({
   plan,
   destacado = false,
   ancho = true,
+  variante,
+  referencia,
+  className,
 }: {
   plan: PlanId;
   destacado?: boolean;
   ancho?: boolean;
+  /** Fuerza el estilo del botón; si no se pasa se deduce de `destacado`. */
+  variante?: "primario" | "secundario" | "acento";
+  /** Dominio que el visitante acaba de escanear. Viaja a Stripe como
+   *  `metadata.referencia` y es lo que permite dar de alta la vigilancia
+   *  sin tener que pedírselo al cliente por email. */
+  referencia?: string;
+  /** Clases extra para el contenedor (márgenes, ancho de tarjeta). */
+  className?: string;
 }) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +38,10 @@ export default function BotonPago({
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(referencia ? { "x-selloia-ref": referencia } : {}),
+        },
         body: JSON.stringify({ plan }),
       });
       const datos = await res.json();
@@ -42,12 +56,18 @@ export default function BotonPago({
   }
 
   return (
-    <div className={ancho ? "w-full" : undefined}>
+    <div className={`${ancho ? "w-full" : ""} ${className ?? ""}`.trim()}>
       <button
         type="button"
         onClick={pagar}
         disabled={cargando}
-        className={`boton w-full ${destacado ? "boton-primario" : "boton-secundario"}`}
+        className={`boton w-full ${
+          variante
+            ? `boton-${variante}`
+            : destacado
+              ? "boton-primario"
+              : "boton-secundario"
+        }`}
       >
         {cargando ? (
           <>
