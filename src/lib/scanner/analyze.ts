@@ -126,6 +126,26 @@ function scriptsDeclarados(html: string): string[] {
 }
 
 /**
+ * Solo etiquetas, y sin las `<a`: el corpus con el que se buscan dominios con
+ * punto.
+ *
+ * Un dominio en un enlace saliente no es un sistema instalado. aiagencies.eu
+ * enlazaba a perplexity.ai y a claude.ai con sus botones de "Research on…" y
+ * salía como si los tuviera integrados, con el hallazgo de Art. 50.2 detrás.
+ * Tampoco lo es el dominio citado en un texto visible o en el payload de un
+ * framework: es contenido editorial, la misma razón por la que ya se ignoran
+ * las cadenas de JavaScript (el caso de sello-ia.com, que se detectaba a sí
+ * mismo con ElevenLabs por tener un artículo que explica qué son).
+ *
+ * Lo que sí prueba integración son atributos de recurso: `src` de script o
+ * iframe, `href` de `<link>`, `content` de meta, `data-*`. Eso se queda.
+ */
+function corpusDeAtributos(html: string): string {
+  const etiquetas = html.match(/<[^>]+>/g)?.join("\n") ?? "";
+  return etiquetas.replace(/<a\b[^>]*>/gi, "").toLowerCase();
+}
+
+/**
  * Código JavaScript embebido en la página.
  *
  * Excluye los `<script>` que no son JavaScript. Los bloques de datos
@@ -212,7 +232,9 @@ function escapeRegExp(s: string): string {
 
 /** Coincidencia de una firma contra el HTML de la página. */
 function firmaCoincide(f: Firma, html: string, scripts: string[]): { firma: string; tipo: "script" | "selector" } | null {
-  const corpus = html.toLowerCase();
+  // Corpus de solo atributos (sin <a>): lo que no es un recurso cargado no
+  // prueba que el sistema esté integrado. Ver corpusDeAtributos.
+  const corpus = corpusDeAtributos(html);
   const js = codigoJs(html);
   const corpusScripts = scripts.map((s) => s.toLowerCase());
 

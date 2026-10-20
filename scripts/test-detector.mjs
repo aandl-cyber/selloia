@@ -48,6 +48,10 @@ function codigoJs(html) {
 function scriptsDeclarados(html) {
   return [...new Set([...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map((m) => m[1]))];
 }
+function corpusDeAtributos(html) {
+  const etiquetas = html.match(/<[^>]+>/g)?.join("\n") ?? "";
+  return etiquetas.replace(/<a\b[^>]*>/gi, "").toLowerCase();
+}
 function tokenEsDelicado(token) {
   return !/[./]/.test(token);
 }
@@ -61,7 +65,7 @@ function enUrlDeScript(urls, token) {
   return urls.some((u) => patron.test(u));
 }
 function firmaCoincide(f, html, scripts) {
-  const corpus = html.toLowerCase();
+  const corpus = corpusDeAtributos(html);
   const js = codigoJs(html);
   const urls = scripts.map((s) => s.toLowerCase());
   for (const s of f.scripts ?? []) {
